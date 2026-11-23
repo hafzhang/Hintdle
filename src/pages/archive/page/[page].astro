@@ -1,0 +1,71 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../../layouts/Base.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import { link, upper } from '../../../lib/site';
+import { difficultyOf } from '../../../lib/graph';
+import { isoDate } from '../../../lib/daily';
+import { breadcrumbLd } from '../../../lib/seo';
+import { PER_PAGE, pagerItems, pagePath, releasedPuzzles } from '../../../lib/archive';
+
+export const getStaticPaths: GetStaticPaths = () => {
+  const released = releasedPuzzles();
+  const total = Math.max(1, Math.ceil(released.length / PER_PAGE));
+  const paths = [];
+  for (let page = 2; page <= total; page++) paths.push({ params: { page: String(page) } });
+  return paths;
+};
+
+const released = releasedPuzzles();
+const totalPages = Math.max(1, Math.ceil(released.length / PER_PAGE));
+const current = Number(Astro.params.page);
+const rows = released.slice((current - 1) * PER_PAGE, current * PER_PAGE);
+
+const title = `Word Ladder Answer Archive — Page ${current}`;
+const description = `Page ${current} of the daily word ladder archive: puzzles in date order with their starting word, step count and difficulty.`;
+const jsonLd = [
+  breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Archive', path: '/archive/' },
+    { name: `Page ${current}`, path: pagePath(current) },
+  ]),
+];
+---
+<Base title={title} description={description} path={pagePath(current)} jsonLd={jsonLd} noindex={true}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Archive', path: '/archive/' }, { name: `Page ${current}` }]} />
+
+  <h1>Answer archive — page {current} of {totalPages}</h1>
+  <p class="lede">In date order, oldest first. Each row links to that puzzle's full ladder.</p>
+
+  <section class="card">
+    <table>
+      <thead>
+        <tr><th>Puzzle</th><th>Start</th><th>Steps</th><th>Difficulty</th><th>Live from (UTC)</th><th></th></tr>
+      </thead>
+      <tbody>
+        {rows.map((p) => (
+          <tr>
+            <td>#{p.n}</td>
+            <td class="mono">{upper(p.word)}</td>
+            <td>{p.distance}</td>
+            <td class={`diff ${difficultyOf(p.distance)}`}>{difficultyOf(p.distance)}</td>
+            <td>{isoDate(p.startUtc)}</td>
+            <td><a href={link(`/archive/${p.n}/`)}>Open</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <nav class="pager" aria-label="Archive pages">
+      {current > 1 && <a href={link(pagePath(current - 1))}>Prev</a>}
+      {pagerItems(current, totalPages).map((it) =>
+        it === '…'
+          ? <span>…</span>
+          : it === current
+            ? <span class="current">{it}</span>
+            : <a href={link(pagePath(it))}>{it}</a>
+      )}
+      {current < totalPages && <a href={link(pagePath(current + 1))}>Next</a>}
+    </nav>
+  </section>
+</Base>

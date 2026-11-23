@@ -1,0 +1,35 @@
+{
+  "puzzle_number": 466,
+  "start_word": "tabs",
+  "target": "poop",
+  "date_utc": "2026-11-23",
+  "active_from_utc": "2026-11-23T08:00:00+00:00",
+  "active_until_utc": "2026-11-24T08:00:00+00:00",
+  "generated_at": "2026-11-23T08:42:56+00:00",
+  "distance": 5,
+  "shortest_path_count": 1,
+  "hints": {
+    "1_steps": "The shortest ladder takes 5 step(s).",
+    "2_position": "Your first move changes letter #1 (T).",
+    "3_letter_change": "Position 1: T -> C.",
+    "4_first_word": "The first word is CABS (TABS -> CABS)."
+  },
+  "revealed_path": [
+    "tabs",
+    "cabs",
+    "cobs",
+    "coos",
+    "coop",
+    "poop"
+  ],
+  "all_shortest_paths": [
+    [
+      "tabs",
+      "cabs",
+      "cobs",
+      "coos",
+      "coop",
+      "poop"
+    ]
+  ]
+}

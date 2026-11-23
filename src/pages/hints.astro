@@ -1,0 +1,142 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import LadderPath from '../components/LadderPath.astro';
+import FaqList from '../components/FaqList.astro';
+import { link, upper } from '../lib/site';
+import { solveWord, difficultyOf } from '../lib/graph';
+import { todayPuzzle, fmtDate } from '../lib/daily';
+import { breadcrumbLd, faqLd } from '../lib/seo';
+
+const today = todayPuzzle();
+if (!today) {
+  throw new Error('No puzzle found for today — data/daily_sequence.csv needs refreshing from a new bundle.');
+}
+
+const sol = solveWord(today.word, 12);
+const firstTo = sol.best[1];
+const changedPos = [...today.word].findIndex((c, i) => c !== firstTo[i]);
+
+const title = `Poople Hints — ${upper(today.word)} to POOP, Spoiler-Free Today`;
+const description = `Four escalating hints for puzzle #${today.n}, from the number of steps down to the first word — revealed one at a time so the rest of the ladder stays hidden. The answer sits in a separate section.`;
+
+const faqs = [
+  {
+    q: 'Do the hints spoil the answer?',
+    a: 'Each hint is stronger than the last, and the answer is kept in its own section further down the page. If you open hints in order you only ever learn one extra fact at a time, so you can stop the moment you are back on track.',
+  },
+  {
+    q: 'Why are there four levels and not one?',
+    a: 'Different players get stuck at different points. Some just need to know how long the ladder is, others need the first letter, and others want the opening word handed to them. Four levels let you take the smallest nudge that unblocks you.',
+  },
+  {
+    q: 'I opened a hint and still cannot finish — what next?',
+    a: `Open the next level, or jump to the full answer section at the bottom of this page. If you want to understand why a route is optimal, the per-word page for ${upper(today.word)} explains why each step is the shortest.`,
+  },
+];
+const jsonLd = [
+  breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Hints', path: '/hints/' }]),
+  faqLd(faqs),
+];
+---
+<Base title={title} description={description} path="/hints/" jsonLd={jsonLd}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Hints' }]} />
+
+  <h1>Today's hints: {upper(today.word)} to POOP</h1>
+  <p class="lede">
+    Puzzle #{today.n}, live from {fmtDate(today.startUtc)}. Four clues, weakest first. Open them one at a
+    time — each one is hidden until you ask for it.
+  </p>
+
+  <div class="note">
+    Spoiler-safe: this page never shows a word you have not asked for, and the full ladder lives in its own
+    section at the bottom. Prefer the answer immediately? <a href={link('/answer-today/')}>Jump to today's answer</a>.
+  </div>
+
+  <h2 id="hint-1">Hint 1 — how long is the ladder?</h2>
+  <details class="hint" id="hint-1-panel" open>
+    <summary>
+      <span class="hint-level">1</span> Number of steps
+    </summary>
+    <div class="hint-body">
+      The shortest ladder from {upper(today.word)} to POOP takes
+      <strong>{today.distance} steps</strong>, which is the
+      <span class={`diff ${difficultyOf(today.distance)}`}>{difficultyOf(today.distance)}</span> band.
+      <p class="locknote">That means {today.distance} letter changes and {today.distance + 1} words in total.</p>
+    </div>
+  </details>
+
+  <h2 id="hint-2">Hint 2 — which letter do you change first?</h2>
+  <details class="hint" id="hint-2-panel">
+    <summary>
+      <span class="hint-level">2</span> Position of the first change
+    </summary>
+    <div class="hint-body">
+      Your first move should change letter <strong>#{changedPos + 1}</strong> — that is the
+      “{today.word[changedPos].toUpperCase()}” in {upper(today.word)}.
+      <p class="locknote">Hint 3 reveals what that letter turns into. Nothing else on the page changes yet.</p>
+    </div>
+  </details>
+
+  <h2 id="hint-3">Hint 3 — what does it become?</h2>
+  <details class="hint" id="hint-3-panel">
+    <summary>
+      <span class="hint-level">3</span> The new letter
+    </summary>
+    <div class="hint-body">
+      Position {changedPos + 1}: <strong>{today.word[changedPos].toUpperCase()} → {firstTo[changedPos].toUpperCase()}</strong>.
+      <p class="locknote">With two of the four letters fixed, the first word is usually obvious. Hint 4 names it outright.</p>
+    </div>
+  </details>
+
+  <h2 id="hint-4">Hint 4 — the first word</h2>
+  <details class="hint" id="hint-4-panel">
+    <summary>
+      <span class="hint-level">4</span> The complete first word
+    </summary>
+    <div class="hint-body">
+      The first word is <strong>{upper(firstTo)}</strong>, so the ladder begins
+      <span class="rung start">{upper(today.word)}</span> → <span class="rung">{upper(firstTo)}</span> …
+      <p class="locknote">This is the strongest hint. Everything after this point is the answer itself.</p>
+    </div>
+  </details>
+
+  <section class="card" aria-labelledby="reveal">
+    <h2 id="reveal" style="margin-top:0">The full answer (only if you want it)</h2>
+    <p class="muted">This section is deliberately separated from the hints above.</p>
+    <LadderPath path={sol.best} />
+    <p style="margin:0">
+      {sol.pathCount === 1
+        ? 'This is the only shortest ladder.'
+        : `There are ${sol.pathCount} equally short ladders — see them all on the answer page.`}
+      {' '}<a href={link('/answer-today/')}>Open the answer page</a>.
+    </p>
+  </section>
+
+  <h2>How the hint levels work</h2>
+  <p>
+    The four hints are ordered by how much information they give away. The first is a pure fact about
+    length: knowing the ladder takes {today.distance} steps tells you how many words you need without
+    revealing a single one. The second narrows the search space to a single letter position, which cuts
+    the four-letter space down enormously. The third commits to one letter, leaving at most a handful of
+    candidates. The fourth names the opening word, which is effectively the answer for the first move.
+  </p>
+  <p>
+    This ladder of clues works because every step in the game is deterministic: once you know a word, the
+    set of legal next moves is small (usually a dozen or fewer real words), and only one of them shortens
+    the remaining distance. If you want the full reasoning for today's puzzle, the per-word page for
+    {upper(today.word)} lists every legal move at every step and shows why the others are longer.
+  </p>
+
+  <FaqList items={faqs} />
+
+  <section class="card">
+    <h2 style="margin-top:0">Related pages</h2>
+    <ul class="linklist">
+      <li><a href={link('/answer-today/')}>Today's answer</a></li>
+      <li><a href={link(`/from/${today.word}/`)}>{upper(today.word)} ladder page</a></li>
+      <li><a href={link('/solver/')}>Solver</a></li>
+      <li><a href={link('/how-to-play/')}>How to play</a></li>
+    </ul>
+  </section>
+</Base>

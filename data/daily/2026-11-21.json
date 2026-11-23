@@ -1,0 +1,51 @@
+{
+  "puzzle_number": 464,
+  "start_word": "jugs",
+  "target": "poop",
+  "date_utc": "2026-11-21",
+  "active_from_utc": "2026-11-21T08:00:00+00:00",
+  "active_until_utc": "2026-11-22T08:00:00+00:00",
+  "generated_at": "2026-11-22T05:22:08+00:00",
+  "distance": 5,
+  "shortest_path_count": 3,
+  "hints": {
+    "1_steps": "The shortest ladder takes 5 step(s).",
+    "2_position": "Your first move changes letter #1 (J).",
+    "3_letter_change": "Position 1: J -> B.",
+    "4_first_word": "The first word is BUGS (JUGS -> BUGS)."
+  },
+  "revealed_path": [
+    "jugs",
+    "bugs",
+    "bogs",
+    "boos",
+    "boop",
+    "poop"
+  ],
+  "all_shortest_paths": [
+    [
+      "jugs",
+      "bugs",
+      "bogs",
+      "boos",
+      "boop",
+      "poop"
+    ],
+    [
+      "jugs",
+      "jogs",
+      "bogs",
+      "boos",
+      "boop",
+      "poop"
+    ],
+    [
+      "jugs",
+      "jogs",
+      "cogs",
+      "coos",
+      "coop",
+      "poop"
+    ]
+  ]
+}

@@ -1,0 +1,177 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import FaqList from '../components/FaqList.astro';
+import { link, upper } from '../lib/site';
+import { getStats } from '../lib/graph';
+import { todayPuzzle, fmtDate } from '../lib/daily';
+import { releasedPuzzles } from '../lib/archive';
+import { breadcrumbLd, faqLd } from '../lib/seo';
+
+const stats = getStats();
+const today = todayPuzzle();
+const published = releasedPuzzles();
+
+const groups = [
+  {
+    heading: 'The puzzle itself',
+    items: [
+      {
+        q: 'What is the daily word ladder?',
+        a: 'A daily puzzle with one rule: start from a four-letter word, change exactly one letter at a time, and every word you pass through must be a real four-letter word. The ladder ends when you reach POOP. Each new puzzle replaces the previous one at 08:00 UTC.',
+      },
+      {
+        q: 'What time does the new puzzle go live?',
+        a: 'Every day at 08:00 UTC — that is 16:00 in Beijing, 09:00 in London in winter and 04:00 in New York. The window is exactly 24 hours, and the moment it opens this site rebuilds the answer, hints and this FAQ\u2019s live figures.',
+      },
+      {
+        q: 'Why is the goal always POOP?',
+        a: 'Because the game fixes one target word and measures every other word against it. POOP is a good choice for a target: it has three distinct letters with one repeat, so it sits in a dense part of the word graph and most words can reach it in a reasonable number of steps instead of never.',
+      },
+      {
+        q: 'How many words are in the ladder?',
+        a: `There are ${stats.word_count.toLocaleString('en-US')} playable words, and every one of them can reach POOP — there are no dead ends. The longest any of them needs is ${stats.max_distance} steps, and ${stats.root_one_step_neighbor_count} words finish in a single move.`,
+      },
+      {
+        q: 'Is Hintdle the official site?',
+        a: 'No. Hintdle is an independent, fan-made reference tool. It is not affiliated with, endorsed by or sponsored by any game publisher, and it contains no game code and no reproduced game content — every ladder here is computed from scratch.',
+      },
+    ],
+  },
+  {
+    heading: 'Playing and hints',
+    items: [
+      {
+        q: 'Are the hints spoiler-free?',
+        a: 'Yes, by construction. The hint page gives you four clues in order of how much they reveal — the number of steps, then which letter position changes first, then what that letter becomes, and only then the first word. The full answer sits in a separate section further down the page so a scroll cannot spoil it by accident.',
+      },
+      {
+        q: 'Why four levels of hint instead of one?',
+        a: 'Because players get stuck at different points. Someone who has the shape of the answer only needs the length; someone who is one word short needs the first letter; someone who is completely lost wants the opening word handed over. Four levels let you take the smallest nudge that unblocks you and no more.',
+      },
+      {
+        q: 'I opened every hint and I am still stuck. Now what?',
+        a: 'Open the answer page, or paste your current word into the solver to see which of its neighbours actually shorten the ladder. Nine times out of ten the problem is a word that looks close to the target but is really one step further away — the solver shows the distance of every word, which makes that visible immediately.',
+      },
+      {
+        q: 'Does my ladder have to use the same words as the answer?',
+        a: 'No. Any ladder that follows the rule and lands on POOP in the minimum number of steps is correct, even if it shares nothing with ours. The answer page shows how many equally short ladders exist, so you can tell whether you found a different optimal route or simply took a longer one.',
+      },
+    ],
+  },
+  {
+    heading: 'The tools',
+    items: [
+      {
+        q: 'Does the solver send my word anywhere?',
+        a: 'No. The solver is a pure front-end lookup against a table computed when the site was built. Nothing you type is uploaded, stored or logged, there is no back end to send it to, and the site has no account system. You can even use it with the network disconnected once the page has loaded.',
+      },
+      {
+        q: 'Why does the solver reject some four-letter words?',
+        a: 'Because a word only counts if it belongs to the ladder graph — if it cannot reach POOP by single-letter steps through other real words, there is no ladder to show. The index lists every word the solver accepts, so you can check before you type.',
+      },
+      {
+        q: 'Can I practise without waiting for tomorrow?',
+        a: 'Yes. Unlimited practice picks a random starting word from the same graph, at whatever difficulty band you choose, and shows the shortest length so you can check yourself. It is the same pool of words the daily puzzle draws from, just without the once-a-day limit.',
+      },
+      {
+        q: 'Does the site work on a phone?',
+        a: 'Yes. Every page is plain static HTML with the ladder laid out so the starting word, the step count and the full path are visible without horizontal scrolling on a normal phone screen. The solver input is sized for a thumb, and nothing depends on hover.',
+      },
+    ],
+  },
+  {
+    heading: 'Answers and the archive',
+    items: [
+      {
+        q: 'How far back does the archive go?',
+        a: `Every puzzle that has ever gone live is kept, oldest first, starting from the very first one. ${published.length.toLocaleString('en-US')} have been published so far, and each entry keeps its original starting word and step count permanently.`,
+      },
+      {
+        q: 'Can I replay an old puzzle?',
+        a: 'Yes. Open any archive entry to see the date, the starting word and the shortest ladder. If you want to solve it blind, read only the date and the starting word and ignore the rest of the page — or start from the hints instead.',
+      },
+      {
+        q: 'Will an old answer still be correct if I come back in a year?',
+        a: 'Yes. A puzzle\u2019s minimum length is a property of the word graph, and the graph does not change, so the number of steps can be recomputed at any time and will come out identical. Archived entries are append-only: once written, they are never edited.',
+      },
+    ],
+  },
+  {
+    heading: 'Data and independence',
+    items: [
+      {
+        q: 'Where does your data come from?',
+        a: 'The ladder definitions and daily ordering come from the data the game publishes publicly to every visitor\u2019s browser, and the word list is cross-checked against three independent public English word lists. Everything is then recalculated from scratch with our own breadth-first search. The full method is documented on the data and method page.',
+      },
+      {
+        q: 'How do you check the answers before publishing?',
+        a: 'Every distance is recomputed independently and compared word by word against the published values; the daily sequence is re-derived; and the current puzzle is compared against the live game. If any step disagrees, nothing is published and the previous day stays in place — a wrong answer is worse than a late one.',
+      },
+      {
+        q: `How many words are one move away from POOP?`,
+        a: `Exactly ${stats.root_one_step_neighbor_count} words reach POOP in a single step. That small ring is worth memorising, because every long ladder ends by arriving at one of them — the words are listed in full on the statistics page.`,
+      },
+      {
+        q: today ? 'How many steps does today\u2019s puzzle take?' : 'How long is today\u2019s ladder?',
+        a: today
+          ? `Today\u2019s puzzle is #${today.n}, live from ${fmtDate(today.startUtc)}. It starts at ${upper(today.word)} and its shortest ladder takes ${today.distance} steps. The complete answer is on the answer page.`
+          : 'Today\u2019s puzzle data is being updated. The archive remains available in the meantime.',
+      },
+    ],
+  },
+];
+
+const all = groups.flatMap((g) => g.items);
+const title = 'Word Ladder FAQ — Rules, Hints, Solver and Archive Questions';
+const description = `Answers to the questions players actually ask: when the puzzle changes, how the four hint levels work, whether the solver uploads anything, how far the archive goes and how the data is verified. ${all.length} questions.`;
+const jsonLd = [
+  breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'FAQ', path: '/faq/' }]),
+  faqLd(all),
+];
+---
+<Base title={title} description={description} path="/faq/" jsonLd={jsonLd}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'FAQ' }]} />
+
+  <h1>Frequently asked questions</h1>
+  <p class="lede">
+    Short, direct answers about the daily puzzle, the four hint levels, the solver, the archive and the
+    data behind them. {all.length} questions, grouped by topic.
+  </p>
+
+  {today && (
+    <div class="note">
+      Live figures today: puzzle <strong>#{today.n}</strong>, starting word
+      <strong>{upper(today.word)}</strong>, shortest ladder <strong>{today.distance} steps</strong>.
+      A new puzzle arrives at 08:00 UTC — see the <a href={link('/answer-today/')}>today's answer page</a>.
+    </div>
+  )}
+
+  {groups.map((g) => (
+    <>
+      <h2>{g.heading}</h2>
+      <FaqList items={g.items} />
+    </>
+  ))}
+
+  <h2>Still stuck?</h2>
+  <p>
+    The fastest route out of a dead end is to check the distance of the word you are sitting on. If the
+    word you are about to play is not exactly one step closer to POOP than your current word, it is the
+    wrong move — that single rule solves most stalls. If you would rather see it worked through, the
+    strategy guide explains the technique step by step.
+  </p>
+
+  <section class="card">
+    <h2 style="margin-top:0">Go straight to a tool</h2>
+    <ul class="linklist">
+      <li><a href={link('/answer-today/')}>Today's answer</a></li>
+      <li><a href={link('/hints/')}>Today's hints</a></li>
+      <li><a href={link('/solver/')}>Solver</a></li>
+      <li><a href={link('/unlimited/')}>Unlimited practice</a></li>
+      <li><a href={link('/archive/')}>Answer archive</a></li>
+      <li><a href={link('/word-ladder-strategy/')}>Strategy guide</a></li>
+      <li><a href={link('/data-methodology/')}>Data &amp; method</a></li>
+    </ul>
+  </section>
+</Base>

@@ -1,0 +1,285 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import LadderPath from '../components/LadderPath.astro';
+import FaqList from '../components/FaqList.astro';
+import { link, upper } from '../lib/site';
+import { getGraph, getStats, solveWord, difficultyOf } from '../lib/graph';
+import { todayPuzzle, fmtDate } from '../lib/daily';
+import { breadcrumbLd, faqLd, articleLd } from '../lib/seo';
+
+const { words } = getGraph();
+const stats = getStats();
+const today = todayPuzzle();
+const demo = solveWord('jugs', 4);
+
+const title = 'How to Play the Word Ladder — Rules, History and Strategy';
+const description =
+  'The complete guide to the four-letter word ladder: the rules, a worked example, the 1877 origin of the puzzle, and the strategy that turns guesswork into a method.';
+
+const faqs = [
+  {
+    q: 'How do I play the word ladder?',
+    a: 'Start from the given four-letter word and change exactly one letter at a time. Every word you land on must be a real four-letter word, and you cannot revisit a word you have already used. The goal is to reach POOP in as few steps as possible.',
+  },
+  {
+    q: 'Can I change more than one letter in a step?',
+    a: 'No. A step is exactly one letter, in exactly one position. Changing two letters at once, reordering letters, or adding and removing letters are all illegal moves.',
+  },
+  {
+    q: 'What counts as a valid word?',
+    a: 'Any ordinary four-letter English word. Slang, abbreviations and proper nouns are not included, and neither are words that merely look plausible — the word has to exist.',
+  },
+  {
+    q: 'Is it always possible to reach POOP?',
+    a: `Yes. All ${getStats().word_count.toLocaleString('en-US')} words in the game\'s graph can reach POOP, so no starting word is ever a dead end. The longest any word needs is ${getStats().max_distance} steps.`,
+  },
+  {
+    q: 'What is the best way to get faster?',
+    a: 'Stop reading words and start reading distance. For any word you can check how many steps it is from POOP, and an optimal move is always one that reduces that number by exactly one. Practise on the Easy and Medium bands until spotting the shortening move becomes automatic.',
+  },
+];
+
+const jsonLd = [
+  articleLd({
+    headline: title,
+    description,
+    path: '/how-to-play/',
+    datePublished: '2026-11-22T00:00:00+00:00',
+    dateModified: '2026-11-22T00:00:00+00:00',
+  }),
+  breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'How to play', path: '/how-to-play/' }]),
+  faqLd(faqs),
+];
+
+const wordCount = words.size;
+const longest = [...words.values()].sort((a, b) => b.distance - a.distance).slice(0, 5);
+---
+<Base title={title} description={description} path="/how-to-play/" jsonLd={jsonLd}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'How to play' }]} />
+
+  <h1>How to play the word ladder</h1>
+  <p class="lede">
+    Everything you need in one page: the rules, a worked example, where the puzzle comes from, and the
+    method that turns it from guesswork into a solvable problem. It takes about three minutes to read and
+    it will change how you play.
+  </p>
+
+  <h2 id="rules">The rules</h2>
+  <p>
+    A word ladder is a chain of words. Each word in the chain differs from the previous one by
+    <strong>exactly one letter</strong>, and every word in the chain has to be a real word.
+  </p>
+  <ol>
+    <li>
+      <strong>Start from the given word.</strong> In the daily puzzle you are handed one four-letter word to
+      begin with.
+    </li>
+    <li>
+      <strong>Change one letter per step.</strong> Choose a single position and swap that letter for another.
+      Two letters at once is not a step — it is two steps, and the puzzle counts them as two.
+    </li>
+    <li>
+      <strong>Every rung must be a real word.</strong> A sequence of letters that merely looks plausible does
+      not count. This is the rule that makes the puzzle interesting: the shortest route often runs through a
+      word you would not have thought of.
+    </li>
+    <li>
+      <strong>Keep the length fixed.</strong> Every word in the chain has four letters. You never add, remove
+      or reorder letters.
+    </li>
+    <li>
+      <strong>Do not repeat a word.</strong> Revisiting a word you have already used only adds steps, since
+      you end up exactly as far from the goal as you were before.
+    </li>
+    <li>
+      <strong>Finish on POOP.</strong> Every puzzle in this game has the same fixed target. The puzzle is over
+      when your chain reaches it, and your score is the number of steps you took.
+    </li>
+  </ol>
+  <p>
+    There is one more rule that is never written down but governs everything: <strong>the puzzle wants the
+    shortest ladder</strong>, not just any ladder. You can always reach POOP eventually on a graph this
+    connected; the skill is in doing it in the minimum number of moves. Every answer on this site is the
+    minimum, verified rather than guessed.
+  </p>
+
+  <h2 id="example">A worked example</h2>
+  <p>
+    Here is a real puzzle. The starting word is <strong>JUGS</strong>, and the shortest route to POOP takes
+    five steps:
+  </p>
+  <LadderPath path={demo.best} />
+  <p>
+    Look at what changes at each rung, because this is the pattern to internalise:
+  </p>
+  <table>
+    <thead><tr><th>Step</th><th>Word</th><th>What changed</th><th>Steps left</th></tr></thead>
+    <tbody>
+      {demo.best.slice(1).map((w, i) => {
+        const prev = demo.best[i];
+        const pos = [...w].findIndex((c, j) => c !== prev[j]);
+        return (
+          <tr>
+            <td>{i + 1}</td>
+            <td class="mono">{upper(w)}</td>
+            <td class="mono">
+              {upper(prev)} → {upper(w)} (letter {pos + 1}: {prev[pos].toUpperCase()} → {w[pos].toUpperCase()})
+            </td>
+            <td>{demo.best.length - 1 - (i + 1)}</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+  <p>
+    Notice the shape of the route. JUGS does not creep toward POOP one letter at a time; it hands the
+    “hard” letters to a chain of short words — BUGS, BOGS, BOOS, BOOP — each of which is a natural stepping
+    stone. By the time the ladder reaches BOOP it is one letter from the goal, and that letter is the one
+    that turns BOOP into POOP. That is a classic ladder: do the awkward work early, then let the final
+    rungs fall into place.
+  </p>
+  <p>
+    It is also worth seeing what <em>does not</em> work. If your first move were, say, to change the G in
+    JUGS instead of the J, you would land on a word that is exactly as far from POOP as JUGS was — a wasted
+    step. Those near-misses are why the puzzle feels unfair until you learn to check distance rather than
+    intuition. The per-word pages on this site list the moves that shorten the ladder and the ones that do
+    not, step by step, so you can see the difference spelled out.
+  </p>
+
+  <h2 id="history">Where the puzzle comes from</h2>
+  <p>
+    The word ladder is not a modern invention. It was published by Lewis Carroll — the mathematician and
+    author of <em>Alice's Adventures in Wonderland</em> — in 1877, under the name <strong>doublets</strong>.
+    Carroll's original puzzle ran with words of any length and asked readers to turn one word into another,
+    with the famous early examples being a three-letter chain from HEAD to TAIL and a four-letter chain from
+    TEA to POT.
+  </p>
+  <p>
+    Carroll's rules were exactly the rules used today, and they have survived unchanged for nearly a hundred
+    and fifty years for a good reason: the format is almost perfectly balanced. It is simple enough to
+    explain in one sentence, yet it produces genuine difficulty, because the constraint that every
+    intermediate word be real strips away almost all of the freedom you think you have. The four-letter
+    version with a fixed target turned out to be the most portable form of the idea, and that is what
+    today's daily puzzle uses.
+  </p>
+  <p>
+    There is a small piece of mathematics hiding inside the game too. Because each move changes one letter,
+    the steps between words behave like distances on a map: you can always measure how far apart two words
+    are, and there are no shortcuts. That property is what lets a computer solve any ladder exactly, and it
+    is why the answers on this site are stated as facts rather than suggestions.
+  </p>
+
+  <h2 id="strategy">Strategy: think in distance, not in words</h2>
+  <p>
+    Beginners read the puzzle as a word game and search for words that "feel" close to POOP. That approach
+    plateaus quickly. Strong players treat it as a routing problem instead, and the whole method rests on one
+    observation:
+  </p>
+  <p>
+    <strong>Every legal move changes your distance to POOP by exactly one — it either drops by one, stays
+    the same, or rises by one. It can never skip.</strong>
+  </p>
+  <p>
+    That single fact gives you a complete decision rule. If a move leaves you the same distance away, it is
+    a wasted step. If it takes you further away, it is worse than wasted — you now have to climb back. Only
+    a move that reduces the distance is part of an optimal ladder. So instead of hunting for clever word
+    chains, you can do this:
+  </p>
+  <ol>
+    <li>
+      <strong>Identify the target ring.</strong> Only a handful of words reach POOP in one move — words like
+      BOOP, COOP, HOOP, LOOP and POOL. Every hard ladder eventually arrives at that ring, so the real
+      question is always "how do I get to one of those words?"
+    </li>
+    <li>
+      <strong>Work backwards from the ring.</strong> Take a one-step word, then find the words that reach
+      <em>it</em> in one move, and so on. Ladders are far easier to read in reverse, because the words near
+      the goal are the easiest ones.
+    </li>
+    <li>
+      <strong>Count your remaining steps constantly.</strong> With a known distance for every word you can
+      tell at a glance whether a candidate move is progress. This is exactly what the on-site solver does,
+      and after a few dozen puzzles the habit becomes automatic.
+    </li>
+    <li>
+      <strong>Accept the awkward early moves.</strong> The hardest part of a long ladder is usually the
+      first step, which often involves a letter change that looks like a detour. Trust the distance and make
+      the move.
+    </li>
+  </ol>
+
+  <h2 id="difficulty">Difficulty bands</h2>
+  <p>
+    Puzzles are labelled by the length of the shortest ladder, because that is what actually determines how
+    hard they feel:
+  </p>
+  <table>
+    <thead><tr><th>Band</th><th>Shortest ladder</th><th>What it feels like</th></tr></thead>
+    <tbody>
+      <tr><td class="diff Easy">Easy</td><td>1–3 steps</td><td>Often solvable on sight. Useful for learning the target ring.</td></tr>
+      <tr><td class="diff Medium">Medium</td><td>4–5 steps</td><td>The classic daily difficulty: one turn that needs thinking through.</td></tr>
+      <tr><td class="diff Hard">Hard</td><td>6+ steps</td><td>Long routes that punish intuition; you have to track distance.</td></tr>
+    </tbody>
+  </table>
+  <p>
+    The extremes are interesting. The longest ladders in the graph need {stats.max_distance} steps, reached by
+    words such as {longest.slice(0, 3).map((w) => upper(w.word)).join(', ')}. At the other end, {stats.root_one_step_neighbor_count}
+    words finish in a single move. And the graph itself has {wordCount.toLocaleString('en-US')} words with
+    distances spread in a lopsided bell shape — most words sit around 4 to 6 steps out, which is why those
+    lengths dominate the difficulty mix.
+  </p>
+
+  <h2 id="daily-vs-unlimited">Daily puzzle vs unlimited practice</h2>
+  <p>
+    The daily puzzle gives you one ladder per day{today ? ` (today's is #${today.n}, starting from ${upper(today.word)} and live from ${fmtDate(today.startUtc)})` : ''}, which is great for routine but
+    stingy for practice. <a href={link('/unlimited/')}>Unlimited practice</a> removes the wait: it draws
+    fresh starting words from the same graph, sorted into the three bands above, so you can drill a dozen
+    Medium ladders in a row and feel the pattern set in.
+  </p>
+  <p>
+    The wider library on this site follows the same split. For any day there is a
+    <a href={link('/answer-today/')}>one-screen answer</a>, four levels of
+    <a href={link('/hints/')}>spoiler-free hints</a>, and a
+    <a href={link('/archive/')}>permanent archive</a> entry. For any word there is a
+    <a href={link('/from/')}>dedicated page</a> showing its full ladder, the alternatives, and the exact
+    reason each step is the shortest one.
+  </p>
+
+  <h2 id="mistakes">Five mistakes that cost you steps</h2>
+  <p>
+    <strong>Changing the wrong letter first.</strong> The opening move decides most of the ladder. If your
+    first rung does not reduce the distance, you have paid a step for nothing.
+  </p>
+  <p>
+    <strong>Turning a real word into a non-word.</strong> It is tempting to bend the dictionary when a
+    chain looks so close. The rules do not bend, so the step collapses and you have to retrace it.
+  </p>
+  <p>
+    <strong>Ignoring the target ring.</strong> Steering vaguely toward POOP wastes moves. Aim at a specific
+    one-step word and route to it deliberately.
+  </p>
+  <p>
+    <strong>Reusing a word.</strong> Looping back to a word you have already visited feels safe and is
+    always fatal to an optimal route.
+  </p>
+  <p>
+    <strong>Assuming there is only one answer.</strong> Many words have several equally short ladders. If
+    you get stuck on one, an alternative opening may unlock the whole puzzle — which is precisely why every
+    answer page here lists the alternatives.
+  </p>
+
+  <FaqList items={faqs} />
+
+  <section class="card">
+    <h2 style="margin-top:0">Start playing</h2>
+    <ul class="linklist">
+      <li><a href={link('/answer-today/')}>Today's answer</a></li>
+      <li><a href={link('/hints/')}>Today's hints</a></li>
+      <li><a href={link('/solver/')}>Solver</a></li>
+      <li><a href={link('/unlimited/')}>Unlimited practice</a></li>
+      <li><a href={link('/from/')}>Word index</a></li>
+      <li><a href={link('/archive/')}>Answer archive</a></li>
+    </ul>
+  </section>
+</Base>

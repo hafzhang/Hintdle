@@ -1,0 +1,63 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { link, upper } from '../../lib/site';
+import { getGraph, difficultyOf } from '../../lib/graph';
+import { breadcrumbLd } from '../../lib/seo';
+
+const { words } = getGraph();
+const playable = [...words.values()].filter((w) => w.distance >= 1);
+const bands: { key: 'Easy' | 'Medium' | 'Hard'; label: string; hint: string }[] = [
+  { key: 'Easy', label: 'Easy — 1 to 3 steps', hint: 'Short ladders; good for warming up.' },
+  { key: 'Medium', label: 'Medium — 4 to 5 steps', hint: 'The daily-puzzle sweet spot.' },
+  { key: 'Hard', label: 'Hard — 6 or more steps', hint: 'Long ladders that need real planning.' },
+];
+const grouped = bands.map((b) => ({
+  ...b,
+  list: playable.filter((w) => difficultyOf(w.distance) === b.key).sort((a, b2) => a.word.localeCompare(b2.word)),
+}));
+
+const title = 'Word Index — Every Four-Letter Word and Its Ladder to POOP';
+const description = `Browse all ${playable.length.toLocaleString('en-US')} playable four-letter words, grouped by how many steps each one needs to reach POOP. Click any word for its full shortest-path analysis.`;
+const jsonLd = [
+  breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Word index', path: '/from/' }]),
+];
+---
+<Base title={title} description={description} path="/from/" jsonLd={jsonLd}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Word index' }]} />
+
+  <h1>Word index</h1>
+  <p class="lede">
+    Every one of the {playable.length.toLocaleString('en-US')} playable four-letter words, grouped by how
+    many steps it needs to reach POOP. Pick a word to see its full ladder, the alternatives, and the
+    reasoning behind each step.
+  </p>
+
+  {grouped.map((band) => (
+    <section class="card">
+      <h2 style="margin-top:0" class={`diff ${band.key}`}>{band.label}</h2>
+      <p class="muted">{band.hint} · {band.list.length.toLocaleString('en-US')} words</p>
+      <ul class="linklist">
+        {band.list.map((w) => (
+          <li><a href={link(`/from/${w.word}/`)} title={`${w.distance} steps to POOP`}>{upper(w.word)}</a></li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  <section class="card">
+    <h2 style="margin-top:0">About this index</h2>
+    <p>
+      The index is ordered by difficulty rather than alphabetically, because the difficulty band is the
+      useful signal: a word's step count is the whole puzzle. Two words can look equally unrelated to POOP
+      and sit four steps apart in reality, so grouping them by distance is far more helpful than sorting
+      them A–Z. Inside each band the words are alphabetical, so you can still scan quickly.
+    </p>
+    <p>
+      The target, <strong>POOP</strong>, is the one word with no ladder of its own —
+      it is where every path ends. It has {[...words.values()].filter((w) => w.distance === 1).length} direct
+      neighbours that reach it in a single move, and those are the words every hard puzzle is ultimately
+      hunting for.
+    </p>
+  </section>
+</Base>

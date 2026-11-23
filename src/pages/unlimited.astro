@@ -1,0 +1,218 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import FaqList from '../components/FaqList.astro';
+import { link, upper } from '../lib/site';
+import { getGraph, difficultyOf, getStats, solveWord } from '../lib/graph';
+import { breadcrumbLd, faqLd } from '../lib/seo';
+
+const { words } = getGraph();
+const stats = getStats();
+
+// The shortest starting words, with their real route — the table the generator draws from.
+const easyRows = [...words.values()]
+  .filter((w) => w.distance >= 1 && w.distance <= 3)
+  .sort((a, b) => a.distance - b.distance || a.word.localeCompare(b.word))
+  .slice(0, 30)
+  .map((w) => ({ word: w.word, distance: w.distance, route: solveWord(w.word, 1).best }));
+
+// Buckets for the random-start generator, grouped by the same difficulty bands.
+const buckets: Record<'Easy' | 'Medium' | 'Hard', string[]> = { Easy: [], Medium: [], Hard: [] };
+for (const [w, info] of words) {
+  if (info.distance === 0) continue; // POOP itself is the goal, not a start
+  buckets[difficultyOf(info.distance)].push(w);
+}
+for (const key of Object.keys(buckets) as (keyof typeof buckets)[]) buckets[key].sort();
+
+const title = 'Poople Unlimited — Free Word Ladder Practice, Rules & Solver';
+const description = `How the endless practice mode works: four-letter words, one letter per step, POOP as the goal. Plus a random start-word generator so you can drill any difficulty — Easy, Medium or Hard — without waiting for tomorrow's puzzle.`;
+
+const faqs = [
+  {
+    q: 'What is unlimited mode?',
+    a: 'It is the endless practice version of the daily word ladder. Instead of one puzzle per day you get a pool of practice ladders drawn from the same four-letter word graph, split by difficulty: shorter ladders for warm-ups, longer ladders for a real challenge. The rules never change — four letters, one letter swapped per step, POOP at the end.',
+  },
+  {
+    q: 'Is the practice ladder data different from the daily puzzle?',
+    a: 'The rules are identical and the words come from the same graph of ' + words.size.toLocaleString('en-US') + ' playable four-letter words. What makes unlimited mode "unlimited" is simply that you are no longer limited to one ladder per day: you can keep generating fresh starting words and solve as many as you like.',
+  },
+  {
+    q: 'How is difficulty decided?',
+    a: 'By the length of the shortest ladder. A word that reaches POOP in 1–3 steps is Easy, 4–5 steps is Medium, and 6 or more steps is Hard. That is the same scale the daily puzzle uses when it labels a puzzle, so a "Medium" practice word feels like a Medium daily.',
+  },
+  {
+    q: 'Do I need an account to practise?',
+    a: 'No. The generator runs in your browser, the words are pre-computed, and nothing is saved anywhere. Refresh the page and you get a different random word.',
+  },
+];
+const jsonLd = [
+  breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Unlimited', path: '/unlimited/' }]),
+  faqLd(faqs),
+];
+---
+<Base title={title} description={description} path="/unlimited/" jsonLd={jsonLd}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Unlimited' }]} />
+
+  <h1>Unlimited practice mode</h1>
+  <p class="lede">
+    The daily puzzle only lasts a minute, and then you wait a day for the next one. Unlimited mode is the
+    answer: the same rules, the same target, but as many starting words as you want — sorted into Easy,
+    Medium and Hard so you can choose the size of the challenge.
+  </p>
+
+  <section class="card" aria-labelledby="generator">
+    <h2 id="generator" style="margin-top:0">Random start-word generator</h2>
+    <p style="margin:0 0 14px">
+      Pick a difficulty and hit the button. You get a starting word; work out the ladder to POOP yourself,
+      then check it with the solver.
+    </p>
+    <div class="solver-form">
+      <label class="sr-only" for="difficulty">Difficulty</label>
+      <select id="difficulty" style="padding:12px 14px;border-radius:11px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:600 .98rem/1 inherit">
+        <option value="Easy">Easy (1–3 steps)</option>
+        <option value="Medium" selected>Medium (4–5 steps)</option>
+        <option value="Hard">Hard (6+ steps)</option>
+        <option value="Any">Any</option>
+      </select>
+      <button type="button" id="roll">Give me a word</button>
+    </div>
+    <div class="result" id="roll-result" aria-live="polite">
+      <p class="muted">Ready when you are.</p>
+    </div>
+  </section>
+
+  <h2>The rules of the ladder</h2>
+  <p>
+    A word ladder — originally called doublets — is a chain of words in which each link differs from the
+    previous one by exactly one letter, and every link is a real word of the same length. In this game the
+    length is fixed at four letters, the chain must end on <strong>POOP</strong>, and you are trying to get
+    there in as few links as possible. Change a letter, keep the word legal, step up.
+  </p>
+  <p>
+    Three rules do all the work. First, <strong>exactly one letter changes per step</strong> — you cannot
+    swap two letters or reshuffle, and you cannot keep a step and add a letter. Second, <strong>every
+    intermediate word must be a valid four-letter word</strong>; a plausible-looking sequence of letters
+    does not count, which is what makes the puzzle hard rather than trivial. Third, <strong>you may not
+    revisit a word</strong> you have already used, because doing so only adds steps without moving you
+    closer.
+  </p>
+
+  <h2>Why the ladder is never hopeless</h2>
+  <p>
+    Every starting word in the graph can reach POOP. There are {words.size.toLocaleString('en-US')} playable
+    four-letter words in total, and none of them is a dead end — the longest any of them needs is
+    {stats.max_distance} steps. That is a deliberate property of the word set: it is one connected
+    component, not a scatter of isolated islands. So if you are stuck in unlimited mode, it is never
+    because the puzzle is impossible; it is because one of your steps walked into a word that is further
+    from the goal than it looked.
+  </p>
+  <p>
+    That is also why distance matters more than intuition. Two words can look equally close to POOP and be
+    four steps apart in reality. The trick is to hunt for words that share the shape of the target — POOP
+    has {stats.root_one_step_neighbor_count} direct neighbours, words like BOOP, COOP, GOOP, HOOP, LOOP,
+    PLOP, POMP, POOF, POOL, POOR and PROP — and to walk toward that ring rather than wandering.
+  </p>
+
+  <h2>Difficulty, in practice</h2>
+  <table>
+    <thead><tr><th>Band</th><th>Shortest ladder</th><th>Words available</th><th>Feel</th></tr></thead>
+    <tbody>
+      <tr><td class="diff Easy">Easy</td><td>1–3 steps</td><td>{buckets.Easy.length.toLocaleString('en-US')}</td><td>A warm-up. Usually solvable on sight.</td></tr>
+      <tr><td class="diff Medium">Medium</td><td>4–5 steps</td><td>{buckets.Medium.length.toLocaleString('en-US')}</td><td>The daily-puzzle sweet spot. Needs one clever turn.</td></tr>
+      <tr><td class="diff Hard">Hard</td><td>6+ steps</td><td>{buckets.Hard.length.toLocaleString('en-US')}</td><td>A real hunt; expect at least one counter-intuitive move.</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Practising by band is the fastest way to improve. Easy words teach you the shape of the target ring.
+    Medium words teach you to spot the one step that shortens the distance. Hard words force you to accept
+    moves that look like they go backwards — changing an early letter away from POOP's pattern because it
+    unlocks a much better position two steps later.
+  </p>
+
+  <h2>Starting words you can finish in three steps or fewer</h2>
+  <p>
+    These are the shortest ladders in the whole graph — the same pool the Easy setting draws from. Every
+    one of them is a real starting word with a real, shortest route, shown next to it. If you are new to
+    the puzzle, work down this list: it teaches the shape of the target ring faster than any explanation,
+    because each route below is the <em>minimum</em>, not just one that happens to work.
+  </p>
+  <table>
+    <thead><tr><th>Start word</th><th>Steps</th><th>Shortest route</th></tr></thead>
+    <tbody>
+      {easyRows.map((r) => (
+        <tr>
+          <td class="mono"><a href={link(`/from/${r.word}/`)}>{upper(r.word)}</a></td>
+          <td>{r.distance}</td>
+          <td class="mono">{r.route.map(upper).join(' → ')}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  <p class="muted">
+    The 30 shortest starting words out of the Easy band. In total {buckets.Easy.length.toLocaleString('en-US')}
+    words finish in three steps or fewer, and {words.size.toLocaleString('en-US')} are playable in all — each
+    with its own page in the <a href={link('/from/')}>word index</a>.
+  </p>
+
+  <h2>How to drill effectively</h2>
+  <p>
+    Generate a word, set a timer for sixty seconds, and try to finish the ladder before it runs out. When
+    the timer ends, check your ladder against the solver and — this is the important part — read
+    <em>which</em> step was wrong and why. Was the first move a word that cannot reach POOP quickly? Was
+    there a second optimal route you missed? The solver lists every equal-length path, so comparing yours
+    against the alternatives tells you exactly what to work on.
+  </p>
+  <p>
+    Repeat with the same difficulty band for a dozen words, then move up a band. Most players find that
+    Hard words stop feeling random once they internalise the two habits: always check a candidate word's
+    distance before committing to it, and always keep the target's one-step ring in mind as a destination.
+    Neither habit is a secret; both are just consequences of the fact that the shortest path is decided by
+    distance, not by how close a word feels.
+  </p>
+
+  <FaqList items={faqs} />
+
+  <section class="card">
+    <h2 style="margin-top:0">Related pages</h2>
+    <ul class="linklist">
+      <li><a href={link('/solver/')}>Solver</a></li>
+      <li><a href={link('/how-to-play/')}>How to play</a></li>
+      <li><a href={link('/answer-today/')}>Today's answer</a></li>
+      <li><a href={link('/archive/')}>Answer archive</a></li>
+    </ul>
+  </section>
+</Base>
+
+<script define:vars={{ buckets }}>
+  const byBand = buckets;
+  const select = document.getElementById('difficulty');
+  const button = document.getElementById('roll');
+  const out = document.getElementById('roll-result');
+
+  function pick(band) {
+    let pool = [];
+    if (band === 'Any') pool = [...byBand.Easy, ...byBand.Medium, ...byBand.Hard];
+    else pool = byBand[band] ?? [];
+    if (!pool.length) return null;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  function render(word) {
+    if (!word || !out) return;
+    out.innerHTML = `
+      <div class="answer-meta">
+        <span class="pill strong" style="font-family:ui-monospace,Menlo,monospace;letter-spacing:.1em">${word.toUpperCase()}</span>
+        <span class="pill">Your start word</span>
+      </div>
+      <p style="margin:0">
+        Work out the ladder yourself, then
+        <a href="/solver/?word=${word}">check it with the solver</a> or open the
+        <a href="/from/${word}/">full ${word.toUpperCase()} analysis</a>.
+      </p>`;
+  }
+
+  button?.addEventListener('click', () => {
+    const band = select ? select.value : 'Medium';
+    render(pick(band));
+  });
+</script>

@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+const title = 'Page not found';
+const description = 'That page does not exist. Head back to today\'s word ladder answer, the hints, or the solver.';
+---
+<Base title={title} description={description} path="/404" noindex={true}>
+  <h1>Page not found</h1>
+  <p class="lede">
+    That page does not exist — or a word link was mistyped. Try one of these instead.
+  </p>
+  <ul class="linklist">
+    <li><a href="/answer-today/">Today's answer</a></li>
+    <li><a href="/hints/">Today's hints</a></li>
+    <li><a href="/solver/">Solver</a></li>
+    <li><a href="/archive/">Answer archive</a></li>
+    <li><a href="/from/">Word index</a></li>
+    <li><a href="/how-to-play/">How to play</a></li>
+  </ul>
+</Base>

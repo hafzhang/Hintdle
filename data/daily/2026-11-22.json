@@ -1,0 +1,41 @@
+{
+  "puzzle_number": 465,
+  "start_word": "anti",
+  "target": "poop",
+  "date_utc": "2026-11-22",
+  "active_from_utc": "2026-11-22T08:00:00+00:00",
+  "active_until_utc": "2026-11-23T08:00:00+00:00",
+  "generated_at": "2026-11-22T08:10:26+00:00",
+  "distance": 8,
+  "shortest_path_count": 1,
+  "hints": {
+    "1_steps": "The shortest ladder takes 8 step(s).",
+    "2_position": "Your first move changes letter #4 (I).",
+    "3_letter_change": "Position 4: I -> S.",
+    "4_first_word": "The first word is ANTS (ANTI -> ANTS)."
+  },
+  "revealed_path": [
+    "anti",
+    "ants",
+    "ands",
+    "aids",
+    "bids",
+    "bods",
+    "boos",
+    "boop",
+    "poop"
+  ],
+  "all_shortest_paths": [
+    [
+      "anti",
+      "ants",
+      "ands",
+      "aids",
+      "bids",
+      "bods",
+      "boos",
+      "boop",
+      "poop"
+    ]
+  ]
+}

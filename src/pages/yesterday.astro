@@ -1,0 +1,232 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import LadderPath from '../components/LadderPath.astro';
+import FaqList from '../components/FaqList.astro';
+import { link, upper } from '../lib/site';
+import { solveWord, ladderSteps, difficultyOf } from '../lib/graph';
+import { todayPuzzle, getSequence, fmtDate } from '../lib/daily';
+import { breadcrumbLd, faqLd } from '../lib/seo';
+
+const today = todayPuzzle();
+const seq = getSequence();
+const y = today && today.n > 1 ? seq[today.n - 1] ?? null : null;
+
+const sol = y ? solveWord(y.word, 12) : null;
+const steps = y ? ladderSteps(y.word) : [];
+const moves = sol
+  ? sol.best.slice(1).map((w, i) => {
+      const prev = sol.best[i];
+      const pos = [...w].findIndex((c, j) => c !== prev[j]);
+      return {
+        step: i + 1,
+        from: prev,
+        to: w,
+        pos: pos + 1,
+        before: prev[pos].toUpperCase(),
+        after: w[pos].toUpperCase(),
+        alternatives: steps[i]?.options.length ?? 1,
+      };
+    })
+  : [];
+const answerText = sol ? sol.best.map(upper).join(' → ') : '';
+
+const title = y
+  ? `Poople Yesterday — ${upper(y.word)} to POOP in ${y.distance} Steps`
+  : 'Poople Yesterday — The Previous Daily Word Ladder';
+const description = y
+  ? `Yesterday's puzzle (#${y.n}, ${fmtDate(y.startUtc)}) started at ${upper(y.word)} and took ${y.distance} steps to reach POOP. Full ladder, every equal-length alternative and the step-by-step breakdown.`
+  : 'The previous daily word ladder puzzle: starting word, shortest ladder length and the full answer.';
+
+const faqs = y
+  ? [
+      {
+        q: `What was yesterday's word ladder?`,
+        a: `Puzzle #${y.n} went live on ${fmtDate(y.startUtc)} at 08:00 UTC and ran for 24 hours. Its starting word was ${upper(y.word)}, and the shortest ladder from it to POOP takes ${y.distance} steps — the ${difficultyOf(y.distance).toLowerCase()} band.`,
+      },
+      {
+        q: `Was there only one answer for ${upper(y.word)}?`,
+        a:
+          sol && sol.pathCount === 1
+            ? `Yes. ${upper(y.word)} has exactly one shortest ladder, so the route shown above is the only optimal finish.`
+            : `No. ${upper(y.word)} has ${sol?.pathCount} equally short ${y.distance}-step ladders, and the table lists them — any of them would have finished the puzzle in the minimum number of moves.`,
+      },
+      {
+        q: 'Can I still play an old puzzle?',
+        a: 'Yes. Every puzzle keeps its own page forever, with its original starting word and step count, so you can revisit any date in the archive — or use the solver on any four-letter word at any time.',
+      },
+      {
+        q: 'When does yesterday\u2019s page change?',
+        a: 'Every day at 08:00 UTC (16:00 Beijing time) a new puzzle replaces the current one, so this page becomes the day before last. The link stays the same; the content rolls forward.',
+      },
+    ]
+  : [];
+
+const jsonLd = [
+  breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Yesterday', path: '/yesterday/' }]),
+  ...(faqs.length ? [faqLd(faqs)] : []),
+];
+---
+<Base title={title} description={description} path="/yesterday/" jsonLd={jsonLd}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Yesterday' }]} />
+
+  {y && sol ? (
+    <>
+      <h1>Yesterday's word ladder: {upper(y.word)} to POOP in {y.distance} steps</h1>
+      <p class="lede">
+        Puzzle #{y.n} was live from {fmtDate(y.startUtc)} 08:00 UTC for 24 hours, so its window has now
+        closed. Here is the whole answer, kept exactly as it was — archived puzzles are never rewritten.
+      </p>
+
+      <section class="card answer-card" aria-labelledby="answer">
+        <h2 id="answer" style="margin-top:0">Yesterday's answer</h2>
+        <div class="answer-meta">
+          <span class="pill strong">{y.distance} steps</span>
+          <span class="pill">{upper(y.word)} → POOP</span>
+          <span class={`pill diff ${difficultyOf(y.distance)}`}>{difficultyOf(y.distance)}</span>
+          <span class="pill">{sol.pathCount} shortest path{sol.pathCount === 1 ? '' : 's'}</span>
+        </div>
+        <LadderPath path={sol.best} />
+        <div class="solver-form" style="margin-top:4px">
+          <button id="copy-answer" class="ghost" data-answer={answerText}>Copy this ladder</button>
+          <span id="copy-status" class="muted" role="status" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 style="margin-top:0">Step by step</h2>
+        <p>
+          Each row is one move: the letter that changed, what it changed into, and how many of the
+          legal neighbouring words would also have shortened the ladder at that point.
+        </p>
+        <table>
+          <thead>
+            <tr><th>Step</th><th>Move</th><th>Position</th><th>Letter</th><th>Also works</th></tr>
+          </thead>
+          <tbody>
+            {moves.map((m) => (
+              <tr>
+                <td>{m.step}</td>
+                <td class="mono">{upper(m.from)} → {upper(m.to)}</td>
+                <td>#{m.pos}</td>
+                <td class="mono">{m.before} → {m.after}</td>
+                <td>{m.alternatives === 1 ? 'only option' : `${m.alternatives} moves`}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2 style="margin-top:0">Every shortest path</h2>
+        {sol.pathCount === 1 ? (
+          <p style="margin:0">
+            There was exactly one {y.distance}-step route from {upper(y.word)} to POOP, so the ladder
+            above is the only way the puzzle could have been finished in the minimum number of moves.
+          </p>
+        ) : (
+          <>
+            <p>
+              {upper(y.word)} reaches POOP in {y.distance} steps along <strong>{sol.pathCount}</strong>
+              {' '}different ladders. Each one below is equally short, so any of them counts as a perfect
+              finish.
+            </p>
+            <table>
+              <thead><tr><th>#</th><th>Ladder</th></tr></thead>
+              <tbody>
+                {sol.paths.map((p, i) => (
+                  <tr><td>{i + 1}</td><td class="mono">{p.map(upper).join(' → ')}</td></tr>
+                ))}
+              </tbody>
+            </table>
+            {sol.pathCount > sol.paths.length && (
+              <p class="muted">
+                Showing {sol.paths.length} of {sol.pathCount} ladders — the rest follow the same
+                pattern from the words listed above.
+              </p>
+            )}
+          </>
+        )}
+      </section>
+
+      <section class="card">
+        <h2 style="margin-top:0">Where this sits in the sequence</h2>
+        <p>
+          Puzzle #{y.n} opened on {fmtDate(y.startUtc)} and closed on {fmtDate(y.endUtc)}. The puzzle
+          that replaced it is
+          {today ? <> #{today.n}, starting at <strong>{upper(today.word)}</strong> ({today.distance} steps)</> : ' not published yet'}
+          . Yesterday's entry keeps its own permanent page in the
+          <a href={link('/archive/')}>answer archive</a>, and the words on the ladder each have their
+          own page in the <a href={link('/from/')}>word index</a>.
+        </p>
+        <ul class="linklist">
+          <li><a href={link(`/archive/${y.n}/`)}>Archive entry #{y.n}</a></li>
+          <li><a href={link(`/from/${y.word}/`)}>{upper(y.word)} ladder page</a></li>
+          <li><a href={link('/answer-today/')}>Today's answer</a></li>
+          <li><a href={link('/hints/')}>Today's hints</a></li>
+          <li><a href={link('/solver/')}>Solver</a></li>
+        </ul>
+      </section>
+
+      <h2>How to read an archived ladder</h2>
+      <p>
+        A completed daily puzzle is a fixed object: the starting word, the minimum length and every
+        optimal route are all determined by the word graph, which does not change from day to day. That
+        is why this page can promise that the answer is still correct — nothing about {upper(y.word)}
+        depends on when you read it. Its distance from POOP is {y.distance} today and will be
+        {y.distance} in a year.
+      </p>
+      <p>
+        The useful habit when reviewing an old puzzle is to read the <em>positions</em> rather than the
+        words. From {upper(y.word)} the ladder changes{' '}
+        {moves.map((m, i) => (
+          <>
+            {i > 0 && ', '}
+            position {m.pos}
+          </>
+        ))}
+        {' '}in order — that alternating pattern is what makes a ladder feel forced rather than chosen,
+        and it is the same pattern you will see in today's puzzle.
+      </p>
+
+      <FaqList items={faqs} />
+
+      <section class="card">
+        <h2 style="margin-top:0">Related pages</h2>
+        <ul class="linklist">
+          <li><a href={link('/answer-today/')}>Today's answer</a></li>
+          <li><a href={link('/archive/')}>Answer archive</a></li>
+          <li><a href={link(`/from/${y.word}/`)}>{upper(y.word)} to POOP</a></li>
+          <li><a href={link('/statistics/')}>Statistics</a></li>
+          <li><a href={link('/how-to-play/')}>How to play</a></li>
+        </ul>
+      </section>
+    </>
+  ) : (
+    <>
+      <h1>Yesterday's word ladder</h1>
+      <p class="lede">
+        There is no previous puzzle to show yet — the first one goes live at 08:00 UTC on the anchor
+        date, and from then on this page always holds the day before today.
+      </p>
+      <p><a href={link('/archive/')}>Browse the answer archive</a>.</p>
+    </>
+  )}
+</Base>
+
+<script>
+  const btn = document.getElementById('copy-answer');
+  const status = document.getElementById('copy-status');
+  btn?.addEventListener('click', async () => {
+    const text = btn.getAttribute('data-answer') ?? '';
+    try {
+      await navigator.clipboard.writeText(text);
+      if (status) status.textContent = 'Copied!';
+    } catch {
+      if (status) status.textContent = text;
+    }
+    setTimeout(() => {
+      if (status) status.textContent = '';
+    }, 2500);
+  });
+</script>

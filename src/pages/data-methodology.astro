@@ -1,0 +1,183 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import FaqList from '../components/FaqList.astro';
+import { link } from '../lib/site';
+import { getGraph, getStats } from '../lib/graph';
+import { breadcrumbLd, faqLd, articleLd } from '../lib/seo';
+
+const { words } = getGraph();
+const stats = getStats();
+
+const title = 'How Hintdle Builds Its Data — Sources, Algorithm and Verification';
+const description =
+  'How every ladder on this site is produced: where the word set comes from, how shortest paths are computed with a breadth-first search, how the results are verified, and what happens when a daily check fails.';
+
+const faqs = [
+  {
+    q: 'Where does the word data come from?',
+    a: `Two independent directions, compared against each other. The ladder definitions and the daily ordering come from the data the game itself publishes publicly to every visitor's browser as part of its own client. The word list is additionally checked against three independent public English word lists (SOWPODS, ENABLE and the dwyl list). When the two sides disagree about whether a word is playable, the word is left out.`,
+  },
+  {
+    q: 'How are the step counts calculated?',
+    a: `With a breadth-first search over the ladder graph, run from the target outward. Two words are joined when they differ in exactly one letter, so the graph has nothing but unit-cost moves — and on a unit-cost graph, a breadth-first search is guaranteed to find the true minimum, not merely a short path. Each number you see is therefore a fact about the graph rather than an estimate.`,
+  },
+  {
+    q: 'How do you know the answers are right?',
+    a: `Every distance is recomputed from scratch with our own search and then compared, word by word, against the values published with the game. The comparison has to come out identical across all ${stats.word_count.toLocaleString('en-US')} words before anything is published. The same check runs on the daily sequence, and the current day is spot-checked against the live game.`,
+  },
+  {
+    q: 'What happens if a daily update fails a check?',
+    a: 'Nothing is published. A failed check means we would be showing a number we cannot stand behind, and a wrong answer is worse than a late one — so the site keeps the previous day intact and the update is held back until it passes.',
+  },
+];
+const jsonLd = [
+  articleLd({
+    headline: title,
+    description,
+    path: '/data-methodology/',
+    datePublished: '2026-11-23T00:00:00+00:00',
+    dateModified: '2026-11-23T00:00:00+00:00',
+  }),
+  breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Data & method', path: '/data-methodology/' }]),
+  faqLd(faqs),
+];
+---
+<Base title={title} description={description} path="/data-methodology/" jsonLd={jsonLd}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Data & method' }]} />
+
+  <h1>How the data is built</h1>
+  <p class="lede">
+    Everything on this site — every step count, every shortest ladder, every claim that a move is
+    optimal — comes from one verified graph of {stats.word_count.toLocaleString('en-US')} four-letter
+    words. This page explains where that graph comes from, how the numbers are computed, and how we
+    check them before they are published.
+  </p>
+
+  <div class="note">
+    Short version: nothing here is hand-written or guessed. The distances are recalculated from
+    scratch and cross-checked against an independent source before a single page is generated.
+  </div>
+
+  <h2>What the data actually is</h2>
+  <p>
+    There are three pieces, and all of them are derived from the same four-letter word set:
+  </p>
+  <ol>
+    <li>
+      <strong>The ladder graph.</strong> A word is a node; two nodes are joined when they differ in
+      exactly one letter. This is the entire rule of the game expressed as a structure, and every
+      question about the puzzle — "how far away is this word", "what can I play next" — is a question
+      about this graph.
+    </li>
+    <li>
+      <strong>The distance table.</strong> For each of the {stats.word_count.toLocaleString('en-US')}
+      playable words, the minimum number of moves needed to reach POOP. This single number is what
+      makes the site useful: it tells you instantly whether a move you are considering is progress.
+    </li>
+    <li>
+      <strong>The daily ordering.</strong> Which starting word belongs to which day. Each day has its
+      own puzzle, and the order is fixed in advance, so a page written today will still be correct in
+      a year.
+    </li>
+  </ol>
+
+  <h2>Where it comes from</h2>
+  <p>
+    The ladder definitions and the daily ordering are read from the data the game itself distributes
+    publicly to every visitor's browser as part of its client — the same information every player
+    already has on their machine when they open the game. We do not scrape other answer sites, and we
+    copy no prose, no page layout and no game assets from anyone.
+  </p>
+  <p>
+    The word list is validated separately against three independent public English word lists:
+    SOWPODS, ENABLE and the dwyl collection. If a word appears in the game's data but not in any of
+    those dictionaries, or the reverse, it is treated as suspect and excluded. This is deliberate: a
+    ladder that runs through a word the player cannot actually type is worse than no ladder at all.
+  </p>
+
+  <h2>How distances are computed</h2>
+  <p>
+    Every distance is produced by a breadth-first search run <em>outward from POOP</em>. The search
+    starts at the target with distance 0, expands to all of its one-letter neighbours with distance 1,
+    then their unvisited neighbours with distance 2, and so on until the whole graph is covered.
+  </p>
+  <p>
+    Breadth-first search is the right tool here for one specific reason: every move in this game costs
+    exactly one step, and on a graph where all moves cost the same, a breadth-first search is
+    guaranteed to reach each word by the shortest possible route. It cannot overshoot. So the number
+    stored for a word is not a good guess or the result of a heuristic — it is the minimum, proven by
+    exhaustion of every shorter route.
+  </p>
+  <p>
+    The same search also records, for each word, which neighbouring word it was first reached from.
+    Following those links backwards from any starting word yields one canonical shortest ladder, which
+    is what the answer pages print first. A separate depth-limited traversal enumerates the other
+    ladders of the same length, which is how the site can honestly say "three equally short
+    solutions" rather than "the" solution.
+  </p>
+
+  <h2>The verification chain</h2>
+  <p>
+    Nothing is published on the strength of a single computation. Before a build, four checks have to
+    pass:
+  </p>
+  <ol>
+    <li>
+      <strong>Independent recomputation.</strong> Our own search recalculates every distance rather
+      than trusting any incoming table.
+    </li>
+    <li>
+      <strong>Full cross-check.</strong> The recomputed distances are compared against the values
+      published with the game, across all {stats.word_count.toLocaleString('en-US')} words. A single
+      mismatch fails the whole comparison.
+    </li>
+    <li>
+      <strong>Sequence check.</strong> The distance stored for each day's starting word is re-derived
+      and compared, so a puzzle's advertised length cannot drift from its real one.
+    </li>
+    <li>
+      <strong>Live spot-check.</strong> The current puzzle is compared against the game itself — the
+      puzzle number, the starting word and the step count all have to line up.
+    </li>
+  </ol>
+
+  <h2>What happens when a check fails</h2>
+  <p>
+    The update is dropped. The site keeps showing the previous day's puzzle and the archive stays
+    fully available, because a page full of yesterday's answer is merely stale, while a page full of a
+    wrong answer is actively misleading. There is no "probably right" state: either the numbers passed
+    every check, or they do not go out.
+  </p>
+
+  <h2>Reproducibility</h2>
+  <p>
+    Because the method is deterministic, anyone can re-derive the same numbers from the same word set.
+    The build reads a single table of word, distance, predecessor, path count and frequency, plus the
+    daily ordering, and every page on the site is a rendering of those two inputs. If the word set
+    ever changes, the whole verification chain is re-run from the top before any page is regenerated —
+    the checks are not a one-off, they run on every rebuild.
+  </p>
+
+  <h2>What this site is not</h2>
+  <p>
+    Hintdle is an independent reference tool. It contains no game code, no reproduced game text and no
+    copied third-party content, and it is not affiliated with or endorsed by any game publisher. The
+    solver runs entirely in your browser against a pre-computed table: nothing you type is uploaded,
+    stored or logged, and there is no account system to hold it. What is left is what the site is for —
+    answers, hints and the numbers behind them, with the working shown.
+  </p>
+
+  <FaqList items={faqs} />
+
+  <section class="card">
+    <h2 style="margin-top:0">Related pages</h2>
+    <ul class="linklist">
+      <li><a href={link('/statistics/')}>The graph in numbers</a></li>
+      <li><a href={link('/how-to-play/')}>How to play</a></li>
+      <li><a href={link('/solver/')}>Solver</a></li>
+      <li><a href={link('/from/')}>Word index</a></li>
+      <li><a href={link('/answer-today/')}>Today's answer</a></li>
+    </ul>
+  </section>
+</Base>

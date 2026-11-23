@@ -1,0 +1,15 @@
+# 依赖与构建产物（由 Vercel 云端构建，不入库）
+node_modules/
+dist/
+.astro/
+.vercel/
+__pycache__/
+*.pyc
+
+# 原始词表与官方 bundle 缓存：仓库不需要，构建只读 data/processed
+data/raw/
+
+# 本机计划任务的运行日志（alerts.log 保留，那是降级告警记录）
+data/daily/run.log
+
+.DS_Store

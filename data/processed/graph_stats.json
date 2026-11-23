@@ -1,0 +1,74 @@
+{
+  "word_count": 2398,
+  "root_word": "poop",
+  "source": "poople.io JS bundle (xE), verified by own BFS",
+  "reachable_count": 2398,
+  "unreachable_count": 0,
+  "unreachable_words": [],
+  "distance_histogram": {
+    "0": 1,
+    "1": 11,
+    "2": 56,
+    "3": 180,
+    "4": 523,
+    "5": 879,
+    "6": 512,
+    "7": 129,
+    "8": 67,
+    "9": 29,
+    "10": 8,
+    "11": 3
+  },
+  "max_distance": 11,
+  "farthest_words": [
+    [
+      "augh",
+      11
+    ],
+    [
+      "inch",
+      11
+    ],
+    [
+      "umph",
+      11
+    ],
+    [
+      "alga",
+      10
+    ],
+    [
+      "amen",
+      10
+    ],
+    [
+      "argh",
+      10
+    ],
+    [
+      "imps",
+      10
+    ],
+    [
+      "itch",
+      10
+    ],
+    [
+      "orca",
+      10
+    ],
+    [
+      "oxer",
+      10
+    ]
+  ],
+  "root_one_step_neighbor_count": 11,
+  "sequence_length": 1137,
+  "sequence_covers_until_utc": "2028-09-23T08:00:00+00:00",
+  "benchmark": {
+    "puzzle_number": 464,
+    "word": "jugs",
+    "distance": 5,
+    "verified": "browser 2026-11-22: header showed '#464: JUGS'"
+  }
+}

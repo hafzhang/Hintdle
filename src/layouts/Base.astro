@@ -1,0 +1,116 @@
+---
+import '../styles/global.css';
+import { SITE, abs, link } from '../lib/site';
+import { organizationLd, webSiteLd } from '../lib/seo';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Site-root-relative canonical path, e.g. "/solver/". */
+  path: string;
+  jsonLd?: unknown[];
+  ogType?: string;
+  noindex?: boolean;
+}
+
+const { title, description, path, jsonLd = [], ogType = 'website', noindex = false } = Astro.props;
+const fullTitle = title.includes(SITE.name) ? title : `${title} | ${SITE.name}`;
+const canonical = abs(path);
+const current = Astro.url.pathname;
+
+const nav = [
+  { href: '/answer-today/', label: 'Today' },
+  { href: '/hints/', label: 'Hints' },
+  { href: '/solver/', label: 'Solver' },
+  { href: '/unlimited/', label: 'Unlimited' },
+  { href: '/archive/', label: 'Archive' },
+  { href: '/statistics/', label: 'Stats' },
+  { href: '/word-ladder-strategy/', label: 'Strategy' },
+  { href: '/faq/', label: 'FAQ' },
+  { href: '/how-to-play/', label: 'How to play' },
+];
+const siteLd = [webSiteLd(), organizationLd()];
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <meta name="theme-color" content="#0f766e" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:image" content={abs(SITE.ogImage)} />
+    <meta property="og:image:alt" content={`${SITE.name} — daily four-letter word ladder answers, hints and solver`} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={abs(SITE.ogImage)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {[...siteLd, ...jsonLd].map((ld) => (
+      <script type="application/ld+json" set:html={JSON.stringify(ld)} />
+    ))}
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="/"><span class="dot"></span>Hintdle</a>
+        <nav class="nav" aria-label="Main">
+          {nav.map((item) => (
+            <a href={item.href} aria-current={current === item.href ? 'page' : undefined}>{item.label}</a>
+          ))}
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap">
+        <slot />
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap cols">
+        <div style="flex:1 1 260px">
+          <a class="brand" href="/" style="margin-bottom:8px"><span class="dot"></span>Hintdle</a>
+          <p style="margin:8px 0 0;max-width:44ch">
+            {SITE.tagline} Daily answers, four levels of spoiler-free hints and a shortest-path solver
+            for the four-letter word ladder.
+          </p>
+        </div>
+        <nav aria-label="Tools">
+          <strong>Tools</strong>
+          <a href={link('/answer-today/')}>Today's answer</a>
+          <a href={link('/hints/')}>Hints</a>
+          <a href={link('/solver/')}>Solver</a>
+          <a href={link('/unlimited/')}>Unlimited practice</a>
+        </nav>
+        <nav aria-label="Reference">
+          <strong>Reference</strong>
+          <a href={link('/archive/')}>Answer archive</a>
+          <a href={link('/yesterday/')}>Yesterday's answer</a>
+          <a href={link('/statistics/')}>Statistics</a>
+          <a href={link('/word-ladder-strategy/')}>Strategy guide</a>
+          <a href={link('/faq/')}>FAQ</a>
+          <a href={link('/how-to-play/')}>How to play</a>
+          <a href={link('/from/')}>Word index</a>
+          <a href={link('/data-methodology/')}>Data &amp; method</a>
+        </nav>
+      </div>
+      <div class="wrap" style="margin-top:20px">
+        <p style="margin:0">
+          Hintdle is an independent, fan-made reference tool. It is not affiliated with, endorsed by,
+          or sponsored by any game publisher, and it contains no game code or reproduced game content.
+          All ladders are computed from scratch.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

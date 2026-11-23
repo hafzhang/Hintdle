@@ -1,0 +1,175 @@
+---
+import Base from '../layouts/Base.astro';
+import LadderPath from '../components/LadderPath.astro';
+import FaqList from '../components/FaqList.astro';
+import { SITE, link, upper } from '../lib/site';
+import { getGraph, getStats, difficultyOf } from '../lib/graph';
+import { todayPuzzle, getSequence, fmtDate } from '../lib/daily';
+import { breadcrumbLd, webApplicationLd, faqLd } from '../lib/seo';
+
+const graph = getGraph();
+const stats = getStats();
+const today = todayPuzzle();
+const seq = getSequence();
+const yesterday = today ? seq[today.n - 1] ?? null : null;
+
+const title = 'Daily Word Ladder Answers, Hints and Solver';
+const description = today
+  ? `Today's four-letter word ladder starts at ${upper(today.word)} and needs ${today.distance} steps to reach POOP. Get the full answer, four levels of spoiler-free hints and a free shortest-path solver.`
+  : 'Daily answers, four levels of spoiler-free hints and a free shortest-path solver for the four-letter word ladder game.';
+
+const faqs = [
+  {
+    q: 'What is the daily word ladder?',
+    a: 'It is a daily puzzle built on a simple idea: start from a four-letter word, change exactly one letter at a time, and every rung in between must be a real four-letter word. The ladder ends when you reach POOP. Each new puzzle goes live at 08:00 UTC (16:00 Beijing time).',
+  },
+  {
+    q: 'How many steps does today\'s puzzle take?',
+    a: today
+      ? `Puzzle #${today.n} starts at ${upper(today.word)} and its shortest possible ladder takes ${today.distance} steps, which lands in the ${difficultyOf(today.distance).toLowerCase()} band.`
+      : 'The shortest ladder length for each puzzle is listed on the answer page as soon as the puzzle goes live.',
+  },
+  {
+    q: 'Are the hints spoiler-free?',
+    a: 'Yes. The hint page reveals one clue at a time, from weakest to strongest: the number of steps, then which letter position to change first, then what that letter becomes, and only then the full first word. The answer itself sits in a separate section so you never see it by accident.',
+  },
+  {
+    q: 'Does the solver send my word anywhere?',
+    a: 'No. The solver is a pure front-end lookup against a pre-computed table of every reachable word. Nothing you type leaves your browser, and the site has no backend or account system.',
+  },
+];
+const jsonLd = [
+  webApplicationLd({
+    name: 'Hintdle Word Ladder Solver & Hints',
+    path: '/',
+    description,
+  }),
+  breadcrumbLd([{ name: 'Home', path: '/' }]),
+  faqLd(faqs),
+];
+---
+<Base title={title} description={description} path="/" jsonLd={jsonLd}>
+  <h1>Daily word ladder answers, hints and a solver</h1>
+  <p class="lede">
+    One screen for everything you need: today's answer, four levels of spoiler-free hints, and a solver
+    that finds the shortest path from any four-letter word to POOP. No account, no upload, no waiting.
+  </p>
+
+  {today ? (
+    <section class="card answer-card" aria-labelledby="today-heading">
+      <h2 id="today-heading" style="margin-top:0">Today's puzzle — #{today.n}</h2>
+      <div class="answer-meta">
+        <span class="pill strong">{today.distance} steps</span>
+        <span class="pill">{upper(today.word)} → POOP</span>
+        <span class={`pill diff ${difficultyOf(today.distance)}`}>{difficultyOf(today.distance)}</span>
+        <span class="pill">Live {fmtDate(today.startUtc)} 08:00 UTC</span>
+      </div>
+      <LadderPath path={[today.word, ...Array(Math.max(0, today.distance - 1)).fill('????'), 'poop']} />
+      <p class="muted" style="margin:0 0 14px">
+        The hidden rungs are revealed on the answer page. Prefer to work it out yourself? Start with the hints.
+      </p>
+      <p style="margin:0">
+        <a href={link('/answer-today/')}>See today's full answer</a> ·
+        <a href={link('/hints/')}>Get hints one at a time</a> ·
+        <a href={link('/solver/')}>Solve any word</a>
+      </p>
+    </section>
+  ) : (
+    <section class="card">
+      <h2 style="margin-top:0">Today's puzzle</h2>
+      <p>Today's puzzle data is updating. The archive below stays available in the meantime.</p>
+    </section>
+  )}
+
+  <div class="grid two">
+    <section class="card">
+      <h2 style="margin-top:0">Yesterday</h2>
+      {yesterday ? (
+        <>
+          <p style="margin:0 0 10px">
+            Puzzle #{yesterday.n} started at <strong>{upper(yesterday.word)}</strong> and took
+            <strong>{yesterday.distance} steps</strong> ({difficultyOf(yesterday.distance)}).
+          </p>
+          <p style="margin:0">
+            <a href={link(`/from/${yesterday.word}/`)}>Open the {upper(yesterday.word)} ladder</a> ·
+            <a href={link(`/archive/${yesterday.n}/`)}>Archive entry</a>
+          </p>
+        </>
+      ) : (
+        <p class="muted">No previous puzzle yet.</p>
+      )}
+    </section>
+
+    <section class="card">
+      <h2 style="margin-top:0">By the numbers</h2>
+      <p style="margin:0 0 10px">
+        Every ladder on this site is computed from one verified graph of
+        <strong>{stats.word_count.toLocaleString('en-US')}</strong> playable four-letter words, all of
+        which can reach POOP. The longest ladder is <strong>{stats.max_distance} steps</strong>, and only
+        <strong>{stats.root_one_step_neighbor_count}</strong> words get there in one move.
+      </p>
+      <p style="margin:0">
+        <a href={link('/statistics/')}>See the full step-count breakdown</a> ·
+        <a href={link('/how-to-play/')}>How the ladder works</a>
+      </p>
+    </section>
+  </div>
+
+  <h2>Pick a tool</h2>
+  <div class="grid three">
+    <section class="card tight">
+      <h3 style="margin-top:0">Today's answer</h3>
+      <p style="margin:0 0 10px">The complete ladder, every equal-length alternative and a one-tap copy.</p>
+      <a href={link('/answer-today/')}>Open the answer →</a>
+    </section>
+    <section class="card tight">
+      <h3 style="margin-top:0">Four-level hints</h3>
+      <p style="margin:0 0 10px">Nudges that get stronger on demand — and never spoil the next rung by accident.</p>
+      <a href={link('/hints/')}>Open the hints →</a>
+    </section>
+    <section class="card tight">
+      <h3 style="margin-top:0">Solver</h3>
+      <p style="margin:0 0 10px">Type any four-letter word and get its shortest ladder to POOP instantly.</p>
+      <a href={link('/solver/')}>Open the solver →</a>
+    </section>
+  </div>
+
+  <h2>What Hintdle does</h2>
+  <p>
+    Hintdle is a reference tool for the daily four-letter word-ladder puzzle, the game in which you
+    step from a starting word to <strong>POOP</strong> one letter at a time, with every intermediate rung
+    being a real word. It is the kind of puzzle some players know as Poople, and the format itself goes
+    back much further: Lewis Carroll published the same "doublets" idea in 1877.
+  </p>
+  <p>
+    The site is organised around three jobs. First, <strong>answers</strong>: the answer page gives you the
+    starting word, the number of steps, and the exact sequence of words, all above the fold, so you are
+    done in seconds rather than minutes. Second, <strong>hints</strong>: if you would rather solve it
+    yourself, the hint page hands out clues in four escalating levels and keeps the answer physically
+    separated so it cannot be seen by accident. Third, <strong>tools</strong>: the solver and the word
+    index cover all {stats.word_count.toLocaleString('en-US')} playable words, so you can look up any
+    starting word, not just today's.
+  </p>
+  <p>
+    Because the whole ladder graph is pre-computed, every page loads as static HTML with almost no
+    JavaScript. The numbers you see are not estimates — each shortest path is verified against the same
+    graph, and each answer page lists how many equal-length alternatives exist, plus the alternatives
+    themselves. If you want to see how the puzzles and ladders are derived, the
+    <a href={link('/how-to-play/')}>how-to-play guide</a> walks through the rules and the maths.
+  </p>
+
+  <FaqList items={faqs} />
+
+  <section class="card">
+    <h2 style="margin-top:0">Browse the word index</h2>
+    <p style="margin:0 0 12px">Every playable word has its own ladder page. A few starting points:</p>
+    <ul class="linklist">
+      <li><a href={link('/from/rise/')}>RISE to POOP</a></li>
+      <li><a href={link('/from/jugs/')}>JUGS to POOP</a></li>
+      <li><a href={link('/from/pick/')}>PICK to POOP</a></li>
+      <li><a href={link('/from/umph/')}>UMPH to POOP</a></li>
+      <li><a href={link('/from/hail/')}>HAIL to POOP</a></li>
+      <li><a href={link('/archive/')}>All daily puzzles</a></li>
+    </ul>
+  </section>
+</Base>

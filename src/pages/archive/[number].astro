@@ -1,0 +1,98 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import LadderPath from '../../components/LadderPath.astro';
+import FaqList from '../../components/FaqList.astro';
+import { link, upper, steps } from '../../lib/site';
+import { solveWord, difficultyOf } from '../../lib/graph';
+import { getSequence, fmtDate, isoDate, todayPuzzle } from '../../lib/daily';
+import { releasedPuzzles } from '../../lib/archive';
+import { breadcrumbLd, faqLd } from '../../lib/seo';
+
+export const getStaticPaths: GetStaticPaths = () => {
+  return releasedPuzzles().map((p) => ({ params: { number: String(p.n) }, props: { puzzle: p } }));
+};
+
+const { puzzle } = Astro.props as { puzzle: ReturnType<typeof getSequence>[number] };
+const latest = todayPuzzle();
+const hasNext = latest ? puzzle.n + 1 <= latest.n : false;
+const sol = solveWord(puzzle.word, 8);
+const firstTo = sol.best[1];
+const changedPos = [...puzzle.word].findIndex((c, i) => c !== firstTo[i]);
+
+const title = `Puzzle #${puzzle.n} — ${upper(puzzle.word)} to POOP in ${puzzle.distance} Steps`;
+const description = `Archive entry for puzzle #${puzzle.n}, live ${isoDate(puzzle.startUtc)}: starting word ${upper(puzzle.word)}, ${puzzle.distance} steps to POOP (${difficultyOf(puzzle.distance)}). Full ladder and equal-length alternatives.`;
+
+const faqs = [
+  {
+    q: `What was puzzle #${puzzle.n}?`,
+    a: `Puzzle #${puzzle.n} went live on ${fmtDate(puzzle.startUtc)} at 08:00 UTC. Its starting word was ${upper(puzzle.word)} and the shortest ladder to POOP takes ${steps(puzzle.distance)}.`,
+  },
+  {
+    q: `How many solutions did ${upper(puzzle.word)} have?`,
+    a: sol.pathCount === 1
+      ? `Exactly one. Every other route from ${upper(puzzle.word)} to POOP is longer than ${puzzle.distance} steps.`
+      : `${sol.pathCount} shortest ladders, all ${puzzle.distance} steps long. They are listed on this page.`,
+  },
+];
+const jsonLd = [
+  breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Archive', path: '/archive/' },
+    { name: `#${puzzle.n}`, path: `/archive/${puzzle.n}/` },
+  ]),
+  faqLd(faqs),
+];
+---
+<Base title={title} description={description} path={`/archive/${puzzle.n}/`} jsonLd={jsonLd}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Archive', path: '/archive/' }, { name: `#${puzzle.n}` }]} />
+
+  <h1>Puzzle #{puzzle.n}: {upper(puzzle.word)} to POOP in {puzzle.distance} steps</h1>
+  <p class="lede">Live from {fmtDate(puzzle.startUtc)} at 08:00 UTC.</p>
+
+  <section class="card answer-card">
+    <div class="answer-meta">
+      <span class="pill strong">{steps(puzzle.distance)}</span>
+      <span class={`pill diff ${difficultyOf(puzzle.distance)}`}>{difficultyOf(puzzle.distance)}</span>
+      <span class="pill">Start {upper(puzzle.word)}</span>
+      <span class="pill">{sol.pathCount} shortest path{sol.pathCount === 1 ? '' : 's'}</span>
+    </div>
+    <LadderPath path={sol.best} linked={true} />
+  </section>
+
+  {sol.pathCount > 1 && (
+    <section class="card">
+      <h2 style="margin-top:0">All shortest ladders</h2>
+      <table>
+        <thead><tr><th>#</th><th>Ladder</th></tr></thead>
+        <tbody>
+          {sol.paths.map((p, i) => (
+            <tr><td>{i + 1}</td><td class="mono">{p.map(upper).join(' → ')}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  )}
+
+  <h2>Why {upper(puzzle.word)} takes {steps(puzzle.distance)}</h2>
+  <p>
+    The shortest route changes {puzzle.word[changedPos].toUpperCase()} to
+    {firstTo[changedPos].toUpperCase()} on the very first move, landing on {upper(firstTo)}. From there the
+    ladder continues {sol.best.slice(1).map(upper).join(' → ')}. Each link differs from the one before it by
+    one letter, and there is no way to reach POOP from {upper(puzzle.word)} in fewer than
+    {puzzle.distance} moves — the step count is the true minimum, not just one valid answer.
+  </p>
+
+  <FaqList items={faqs} />
+
+  <section class="card">
+    <h2 style="margin-top:0">Related pages</h2>
+    <ul class="linklist">
+      <li><a href={link(`/from/${puzzle.word}/`)}>Full analysis for {upper(puzzle.word)}</a></li>
+      <li><a href={link('/archive/')}>Back to the archive</a></li>
+      {puzzle.n > 1 && <li><a href={link(`/archive/${puzzle.n - 1}/`)}>Previous puzzle #{puzzle.n - 1}</a></li>}
+      {hasNext && <li><a href={link(`/archive/${puzzle.n + 1}/`)}>Next puzzle #{puzzle.n + 1}</a></li>}
+    </ul>
+  </section>
+</Base>

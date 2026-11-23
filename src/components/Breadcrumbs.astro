@@ -1,0 +1,17 @@
+---
+import { link } from '../lib/site';
+
+interface Item { name: string; path?: string }
+interface Props { items: Item[] }
+const { items } = Astro.props;
+---
+<nav class="crumbs" aria-label="Breadcrumb">
+  {items.map((item, i) => (
+    <>
+      {i > 0 && <span aria-hidden="true">›</span>}
+      {item.path
+        ? <a href={link(item.path)}>{item.name}</a>
+        : <span>{item.name}</span>}
+    </>
+  ))}
+</nav>

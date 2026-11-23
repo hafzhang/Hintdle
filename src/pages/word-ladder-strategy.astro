@@ -1,0 +1,316 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import LadderPath from '../components/LadderPath.astro';
+import FaqList from '../components/FaqList.astro';
+import { link, upper } from '../lib/site';
+import { getGraph, getStats, solveWord, ladderSteps, getPoopNeighbours, difficultyOf } from '../lib/graph';
+import { breadcrumbLd, faqLd, articleLd } from '../lib/seo';
+
+const { words } = getGraph();
+const stats = getStats();
+const ring = getPoopNeighbours();
+
+// Worked example: RISE has a single shortest ladder, which makes the reasoning easy to follow.
+const ex = solveWord('rise', 4);
+const exSteps = ladderSteps('rise');
+const exMoves = ex.best.slice(1).map((w, i) => {
+  const prev = ex.best[i];
+  const pos = [...w].findIndex((c, j) => c !== prev[j]);
+  const others = exSteps[i]?.options.filter((o) => o.word !== w) ?? [];
+  return {
+    step: i + 1,
+    from: prev,
+    to: w,
+    pos: pos + 1,
+    before: prev[pos].toUpperCase(),
+    after: w[pos].toUpperCase(),
+    others,
+  };
+});
+
+// One real dead end: a neighbour of the first rung that does NOT shorten the ladder.
+const trap = exSteps[0]?.nonProgress[0] ?? null;
+
+const easy = solveWord('boat', 2);
+const mid = solveWord('taxi', 2);
+const deep = solveWord('inch', 3);
+const deepInfo = words.get('inch')!;
+
+const title = 'Word Ladder Strategy — How to Solve Any Ladder by Hand';
+const description =
+  'A practical method for the four-letter word ladder: work backwards from the goal, watch the distance instead of the words, and avoid the three traps that cost extra steps. Includes a full worked example with the real distances.';
+
+const faqs = [
+  {
+    q: 'What is the fastest way to solve a word ladder?',
+    a: `Give up on reading words letter by letter and read distances instead. Each move leaves the distance to POOP either one lower, the same, or one higher, so any move that does not lower it is a step you did not need. If you know the distance of every word you are considering, the ladder solves itself — that is exactly what the solver and the word index give you.`,
+  },
+  {
+    q: 'Why is it better to think backwards from the goal?',
+    a: `Because the goal is a fixed point you can learn in advance. Only ${ring.length} words are one move from POOP, so knowing that small ring means you can recognise the finish from far away and steer toward it. Working forwards from an unfamiliar starting word, you have no idea which candidates are close and which are dead ends.`,
+  },
+  {
+    q: 'Why does my solution sometimes take one step more than the answer?',
+    a: 'Almost always because of a lateral move — a real word that looks like progress but sits at the same distance as the word you were on. It is legal, it is a real word, and it costs you a step. The other common cause is a word that matches three letters of POOP but is actually further away, which is the most expensive trap in the game.',
+  },
+  {
+    q: 'Are longer ladders harder for a different reason?',
+    a: `Longer ladders are not harder because the words get rarer — they are harder because the starting word sits in a thinner part of the graph. ${upper('inch')} is ${deepInfo.distance} steps out with ${deepInfo.pathCount} equally short routes, while ${upper('boat')} is only ${easy.distance} steps out. The further out you start, the less room there is to recover from a wasted move, so the early steps matter much more.`,
+  },
+];
+const jsonLd = [
+  articleLd({
+    headline: title,
+    description,
+    path: '/word-ladder-strategy/',
+    datePublished: '2026-11-23T00:00:00+00:00',
+    dateModified: '2026-11-23T00:00:00+00:00',
+  }),
+  breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'How to play', path: '/how-to-play/' },
+    { name: 'Strategy', path: '/word-ladder-strategy/' },
+  ]),
+  faqLd(faqs),
+];
+---
+<Base title={title} description={description} path="/word-ladder-strategy/" jsonLd={jsonLd}>
+  <Breadcrumbs
+    items={[{ name: 'Home', path: '/' }, { name: 'How to play', path: '/how-to-play/' }, { name: 'Strategy' }]}
+  />
+
+  <h1>Word ladder strategy: how to solve any ladder by hand</h1>
+  <p class="lede">
+    Most players lose steps for one reason: they read the words instead of the distances. This guide is
+    the reverse — a method that works on any starting word, any length of ladder, and does not depend on
+    spotting a clever word. Every number below is real, taken from the same
+    {stats.word_count.toLocaleString('en-US')}-word graph the rest of the site is built on.
+  </p>
+
+  <h2>The only number that matters</h2>
+  <p>
+    Every playable word has a fixed <strong>distance</strong>: the minimum number of single-letter moves
+    needed to reach POOP. That number is the whole game. When you change one letter, the distance of the
+    new word can only do one of three things — go down by one, stay the same, or go up by one. It can
+    never jump from five steps out to three, and it can never jump from five to eight.
+  </p>
+  <p>
+    That single fact turns a word puzzle into a decision rule: <strong>if a move does not lower the
+    distance, it is a wasted step.</strong> You do not have to find the clever rung; you only have to
+    avoid the moves that are not progress. And because the graph never changes, the distance of any word
+    is a permanent fact you can look up rather than guess — the solver and the per-word pages both exist
+    for exactly this.
+  </p>
+  <p>
+    The practical consequence is that your job on each turn is not "what word can I make?" but "which of
+    the words I can make is exactly one closer?" Usually only a handful of neighbours of any given word
+    qualify, and often only one. That is why an optimal ladder often feels forced: it is.
+  </p>
+
+  <h2>Work backwards from the goal, not forwards from your word</h2>
+  <p>
+    The goal is fixed and you will meet it hundreds of times, so learn it once. Exactly
+    {' '}<strong>{ring.length}</strong> words are one move from POOP, and they are worth memorising:
+    {' '}{ring.map(upper).join(', ')}. Notice the shapes: most of them keep the <em>-OOP</em> ending and
+    change the first letter; the rest keep <em>POO-</em> and change the last.
+  </p>
+  <p>
+    Once you know that ring, the end of any ladder becomes visible from a distance. You stop searching
+    for POOP and start searching for a way to reach the ring, which is a much better-defined target. In
+    practice this is the difference between aimlessly trying words and playing with a plan.
+  </p>
+  <p>
+    It also explains why the opening move matters so much. A ladder of {deepInfo.distance} steps is
+    really a {deepInfo.distance - 1}-step walk toward that ring plus one final move; if your first move
+    takes you sideways, you have to make that step up somewhere later, and the further out you started
+    the less slack you have.
+  </p>
+
+  <h2>Read the changing position, not the words</h2>
+  <p>
+    When you look at an optimal ladder, resist reading it as four words. Read it as a sequence of
+    <em>positions</em>. In the ladder below, each step touches one letter slot, and once you see which
+    slot moves when, the whole route looks less like guesswork and more like a mechanism:
+  </p>
+  <LadderPath path={ex.best} linked={true} />
+  <p>
+    In this example each of the {exMoves.length} steps changes position {exMoves[0].pos}, then{' '}
+    {exMoves.slice(1).map((m, i) => (
+      <>
+        {i > 0 && ', then '}
+        position {m.pos}
+      </>
+    ))}
+    . That alternation is not a coincidence: a word can only be one step from its neighbour, so a ladder
+    whose steps bounce between two slots is almost always optimal, while a ladder that keeps editing the
+    same slot is almost certainly going the long way round.
+  </p>
+  <p>
+    This is also the fastest way to use an answer you have already seen. Rather than memorising the
+    words, memorise the position pattern — it is four small facts instead of five words, and it transfers
+    to tomorrow's puzzle far better.
+  </p>
+
+  <h2>The three traps that cost extra steps</h2>
+  <ol>
+    <li>
+      <strong>The lateral move.</strong> A real word, one letter from your current word, at exactly the
+      same distance — so it feels like progress and costs you a full step. It is the most common way to
+      turn a {ex.distance}-step ladder into a {ex.distance + 1}-step one.
+      {trap && (
+        <>
+          {' '}A concrete example: from {upper(ex.best[0])} the word {upper(trap.word)} is a legal move,
+          but it sits {trap.distance} steps out — the same as where you started.
+        </>
+      )}
+    </li>
+    <li>
+      <strong>The three-letter match.</strong> Chasing a word that already looks like POOP — three letters
+      in place — feels safe and is often the worst move available, because the last letter is frequently
+      the one holding the distance up. Matching more letters of the target is not the same as being
+      closer to it.
+    </li>
+    <li>
+      <strong>The tidy-looking detour.</strong> Tidying a word into something more familiar, or adding a
+      plural or past tense, rarely helps. The graph does not reward prettiness; it rewards being one step
+      nearer the goal, which is a property of the letters and not of how normal the word looks.
+    </li>
+  </ol>
+
+  <h2>A full example, explained</h2>
+  <p>
+    Here is {upper(ex.best[0])} — {ex.distance} steps, a {difficultyOf(ex.distance).toLowerCase()} puzzle,
+    and with exactly {ex.pathCount} shortest ladder{ex.pathCount === 1 ? '' : 's'} to POOP. Each row shows
+    the move, which position it edits, and how many of the other legal neighbours would also have worked.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Step</th><th>Move</th><th>Position</th><th>Letter</th><th>Alternatives that also work</th></tr>
+    </thead>
+    <tbody>
+      {exMoves.map((m) => (
+        <tr>
+          <td>{m.step}</td>
+          <td class="mono">{upper(m.from)} → {upper(m.to)}</td>
+          <td>#{m.pos}</td>
+          <td class="mono">{m.before} → {m.after}</td>
+          <td>{m.others.length === 0 ? 'none — forced' : m.others.map(upper).join(', ')}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  <p>
+    Read the last column left to right: that is the size of your real decision space at each step. When it
+    says "none — forced", the ladder is not asking you a question any more. This is the pattern behind the
+    whole game, and it is why a solver answers instantly while a human stares: the human is enumerating
+    candidates the graph has already eliminated.
+  </p>
+
+  <h2>What changes as the ladder gets longer</h2>
+  <p>
+    Short, medium and long ladders are not the same puzzle at different sizes. Take four real starting
+    words from the graph:
+  </p>
+  <table>
+    <thead><tr><th>Starting word</th><th>Shortest ladder</th><th>Band</th><th>Equally short routes</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="mono">{upper('boat')}</td>
+        <td>{easy.distance} steps</td>
+        <td class={`diff ${difficultyOf(easy.distance)}`}>{difficultyOf(easy.distance)}</td>
+        <td>{easy.pathCount}</td>
+      </tr>
+      <tr>
+        <td class="mono">{upper('rise')}</td>
+        <td>{ex.distance} steps</td>
+        <td class={`diff ${difficultyOf(ex.distance)}`}>{difficultyOf(ex.distance)}</td>
+        <td>{ex.pathCount}</td>
+      </tr>
+      <tr>
+        <td class="mono">{upper('taxi')}</td>
+        <td>{mid.distance} steps</td>
+        <td class={`diff ${difficultyOf(mid.distance)}`}>{difficultyOf(mid.distance)}</td>
+        <td>{mid.pathCount}</td>
+      </tr>
+      <tr>
+        <td class="mono">{upper('inch')}</td>
+        <td>{deep.distance} steps</td>
+        <td class={`diff ${difficultyOf(deep.distance)}`}>{difficultyOf(deep.distance)}</td>
+        <td>{deepInfo.pathCount}</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    The pattern is not what most players expect. The hard words are not hard because their letters are
+    exotic; they are hard because they start in a thin part of the graph where the early moves have very
+    few choices. {upper('inch')} sits {deep.distance} steps out but has {deepInfo.pathCount} different
+    optimal routes — that sounds generous, and it is, but only once you have found the first correct step.
+    Words near the middle of the graph, like {upper('rise')} at {ex.distance} steps, often have just
+    {' '}{ex.pathCount} route, so a single wrong turn there costs a step with no alternative to recover to.
+  </p>
+  <p>
+    So the answer to "which puzzle is hardest?" is not the longest one. A {stats.max_distance}-step word
+    with a wide choice of routes can be more forgiving than a {ex.distance}-step word with one narrow
+    path. If you want to practise deliberately, drill the narrow ones — the word index lets you find
+    words with a single shortest ladder, and those are where technique pays.
+  </p>
+
+  <h2>Making your own ladder puzzles</h2>
+  <p>
+    The same method works in reverse, which makes the format a good classroom or party exercise. To build
+    a puzzle, pick a starting word and a target, then check three things in order:
+  </p>
+  <ol>
+    <li>
+      <strong>Everybody must agree the words are words.</strong> The single most common failure in
+      hand-made ladders is using a word the solver does not know. This is why a published word list
+      matters more than an inventive mind.
+    </li>
+    <li>
+      <strong>Prove the minimum.</strong> You cannot decide the "right" length by finding one route — a
+      route you found is only an upper bound. You need a search that explores outward from the target and
+      stops, because only that proves no shorter ladder exists.
+    </li>
+    <li>
+      <strong>Check for accidental shortcuts.</strong> Any change to the word list can silently create a
+      shorter route. Recompute the distance after every edit, or you will publish a puzzle whose stated
+      length is wrong.
+    </li>
+  </ol>
+  <p>
+    That third point is the reason the answers on this site are recomputed rather than written down. A
+    stated step count is a claim about the entire graph, not about one path, and it is only true if
+    nothing shorter exists.
+  </p>
+
+  <h2>Where the format comes from</h2>
+  <p>
+    The puzzle is usually traced to Lewis Carroll, who invented it in 1877 and published it as "Doublets"
+    in Vanity Fair in 1879. His rules were the ones we still use: change one letter at a time, and every
+    intermediate must be a real word. Carroll's own versions often linked two unrelated words rather than
+    aiming at a fixed target, which is why modern versions — including the daily puzzle this site
+    supports — fix POOP as the goal and measure everything else against it.
+  </p>
+  <p>
+    Fixing the target is what makes the maths tractable. With a fixed goal, the distance from every word
+    becomes a single well-defined number, and the puzzle stops being an open-ended search and becomes a
+    descent: from any word, there is always at least one move that shortens the ladder, and the only
+    question is whether you can see it.
+  </p>
+
+  <FaqList items={faqs} />
+
+  <section class="card">
+    <h2 style="margin-top:0">Put the method to work</h2>
+    <ul class="linklist">
+      <li><a href={link('/solver/')}>Solve any word</a></li>
+      <li><a href={link('/answer-today/')}>Today's answer</a></li>
+      <li><a href={link('/hints/')}>Today's hints</a></li>
+      <li><a href={link('/unlimited/')}>Practise on random words</a></li>
+      <li><a href={link('/from/')}>Word index by difficulty</a></li>
+      <li><a href={link('/how-to-play/')}>How to play</a></li>
+      <li><a href={link('/data-methodology/')}>Data &amp; method</a></li>
+    </ul>
+  </section>
+</Base>

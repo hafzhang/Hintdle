@@ -1,0 +1,26 @@
+---
+import { link, upper } from '../lib/site';
+import { TARGET } from '../lib/graph';
+
+interface Props {
+  path: string[];
+  /** Render every rung as a link to its /from/{word}/ page. */
+  linked?: boolean;
+}
+const { path: ladder, linked = false } = Astro.props;
+---
+<div class="ladder" role="list" aria-label="Word ladder">
+  {ladder.map((word, i) => (
+    <>
+      {i > 0 && <span class="arrow" aria-hidden="true">→</span>}
+      {linked && word !== TARGET ? (
+        <a class="rung" role="listitem" href={link(`/from/${word}/`)}>{upper(word)}</a>
+      ) : (
+        <span
+          class:list={['rung', { start: i === 0, goal: word === TARGET }]}
+          role="listitem"
+        >{upper(word)}</span>
+      )}
+    </>
+  ))}
+</div>

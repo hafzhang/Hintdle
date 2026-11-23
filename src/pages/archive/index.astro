@@ -1,0 +1,104 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import FaqList from '../../components/FaqList.astro';
+import { link, upper } from '../../lib/site';
+import { difficultyOf } from '../../lib/graph';
+import { isoDate } from '../../lib/daily';
+import { breadcrumbLd, faqLd } from '../../lib/seo';
+import { PER_PAGE, releasedPuzzles, pagerItems, pagePath } from '../../lib/archive';
+
+const released = releasedPuzzles();
+const oldest = released.slice(0, PER_PAGE);
+const totalPages = Math.max(1, Math.ceil(released.length / PER_PAGE));
+const current = 1;
+
+const title = 'Word Ladder Answer Archive — Every Daily Puzzle';
+const description = `Browse every daily word ladder that has been published: ${released.length.toLocaleString('en-US')} puzzles so far, each with its starting word, step count and full ladder. Oldest first, starting from puzzle #1.`;
+
+const faqs = [
+  {
+    q: 'How far back does the archive go?',
+    a: `Back to the very first puzzle. There are ${released.length.toLocaleString('en-US')} entries so far, and each one keeps its original starting word and step count — archived puzzles are never rewritten.`,
+  },
+  {
+    q: 'Can I replay an old puzzle?',
+    a: 'Yes. Open any archived puzzle to see the starting word and the shortest ladder. If you want to solve it blind, read only the date and starting word and ignore the rest of the page.',
+  },
+  {
+    q: 'Why is the archive sorted by puzzle number?',
+    a: 'Because the puzzle number is the ground truth for what was live on a given day. Each entry lists the UTC window it was active, so you can match a date to a puzzle without guessing.',
+  },
+];
+const jsonLd = [
+  breadcrumbLd([{ name: 'Home', path: '/' }, { name: 'Archive', path: '/archive/' }]),
+  faqLd(faqs),
+];
+---
+<Base title={title} description={description} path="/archive/" jsonLd={jsonLd}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Archive' }]} />
+
+  <h1>Word ladder answer archive</h1>
+  <p class="lede">
+    Every daily puzzle ever published in date order, starting from the first one (#1). {released.length.toLocaleString('en-US')} entries —
+    each with its starting word, shortest step count and full ladder. Pages of {PER_PAGE}.
+  </p>
+
+  <section class="card">
+    <table>
+      <thead>
+        <tr><th>Puzzle</th><th>Start</th><th>Steps</th><th>Difficulty</th><th>Live from (UTC)</th><th></th></tr>
+      </thead>
+      <tbody>
+        {oldest.map((p) => (
+          <tr>
+            <td>#{p.n}</td>
+            <td class="mono">{upper(p.word)}</td>
+            <td>{p.distance}</td>
+            <td class={`diff ${difficultyOf(p.distance)}`}>{difficultyOf(p.distance)}</td>
+            <td>{isoDate(p.startUtc)}</td>
+            <td><a href={link(`/archive/${p.n}/`)}>Open</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <nav class="pager" aria-label="Archive pages">
+      {pagerItems(current, totalPages).map((it) =>
+        it === '…'
+          ? <span>…</span>
+          : it === current
+            ? <span class="current">{it}</span>
+            : <a href={link(pagePath(it))}>{it}</a>
+      )}
+      {current < totalPages && <a href={link(pagePath(current + 1))}>Next</a>}
+    </nav>
+  </section>
+
+  <h2>About the archive</h2>
+  <p>
+    Each entry records one daily puzzle: its number, the date its window opened, the starting word, and the
+    length of the shortest ladder to POOP. Opening an entry shows the full ladder and the words you would
+    have typed to finish it. The archive is append-only: once a puzzle is written it is never edited, so a
+    link you save today still points at the same answer a year from now.
+  </p>
+  <p>
+    Puzzle numbers are a simple counter — the first puzzle is #0 and each new one adds one — while the
+    "live from" date is the UTC moment the puzzle became playable. Because the switch happens at a fixed
+    time, the same calendar day can be shared by two puzzles depending on your time zone; the archive
+    therefore keys everything on the puzzle number and lists the exact UTC window, which removes the
+    ambiguity.
+  </p>
+
+  <FaqList items={faqs} />
+
+  <section class="card">
+    <h2 style="margin-top:0">Related pages</h2>
+    <ul class="linklist">
+      <li><a href={link('/answer-today/')}>Today's answer</a></li>
+      <li><a href={link('/hints/')}>Today's hints</a></li>
+      <li><a href={link('/solver/')}>Solver</a></li>
+      <li><a href={link('/from/')}>Word index</a></li>
+    </ul>
+  </section>
+</Base>

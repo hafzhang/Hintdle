@@ -1,0 +1,204 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import LadderPath from '../../components/LadderPath.astro';
+import FaqList from '../../components/FaqList.astro';
+import { link, upper, steps } from '../../lib/site';
+import {
+  getGraph, solveWord, ladderSteps, neighbours, sameDistancePeers, difficultyOf,
+} from '../../lib/graph';
+import { breadcrumbLd, faqLd } from '../../lib/seo';
+
+export const getStaticPaths: GetStaticPaths = () => {
+  const { words } = getGraph();
+  return [...words.values()]
+    .filter((w) => w.distance >= 1) // POOP itself has no ladder of its own
+    .map((w) => ({ params: { word: w.word }, props: { word: w.word } }));
+};
+
+const { word } = Astro.props as { word: string };
+const sol = solveWord(word, 8);
+const stepList = ladderSteps(word);
+const diff = difficultyOf(sol.distance);
+
+// Rotate three title formulas so the ~2,400 index pages are not near-duplicates in the SERP.
+const variant = [...word].reduce((a, c) => a + c.charCodeAt(0), 0) % 3;
+const titles = [
+  `${upper(word)} to POOP in ${sol.distance} Steps — Word Ladder Path`,
+  `Word Ladder: ${upper(word)} to POOP in ${sol.distance} Steps`,
+  `How to Get from ${upper(word)} to POOP in ${sol.distance} Steps`,
+];
+const title = titles[variant];
+
+const firstTo = sol.best[1];
+const changedPos = [...word].findIndex((c, i) => c !== firstTo[i]);
+const near = neighbours(word, 10);
+const peers = sameDistancePeers(word, 6);
+
+const description = `The shortest word ladder from ${upper(word)} to POOP takes ${steps(sol.distance)} (${diff}). See the full path, every equally short alternative, and why each step is the fastest one.`;
+
+const faqs = [
+  {
+    q: `How many steps is ${upper(word)} from POOP?`,
+    a: `${upper(word)} is exactly ${sol.distance} ${sol.distance === 1 ? 'step' : 'steps'} from POOP. That is the true minimum: no ladder from ${upper(word)} can reach POOP in fewer moves, and ${sol.pathCount === 1 ? 'there is only one ladder that achieves it' : `there are ${sol.pathCount} different ladders that achieve it`}.`,
+  },
+  {
+    q: `What is the first move from ${upper(word)}?`,
+    a: `Change letter #${changedPos + 1} of ${upper(word)} (the “${word[changedPos].toUpperCase()}”) to “${firstTo[changedPos].toUpperCase()}”, giving ${upper(firstTo)}. That is the opening move of the shortest ladder; from there the rest of the route is forced by distance.`,
+  },
+  {
+    q: `Why can't ${upper(word)} reach POOP faster?`,
+    a: `Because distance cannot be cheated: each move changes one letter, and a word can only get one step closer to POOP at a time. Every legal neighbour of ${upper(word)} is at distance ${sol.distance - 1}, ${sol.distance} or ${sol.distance + 1} — never lower. To arrive in fewer than ${sol.distance} moves you would need a neighbour closer than ${sol.distance - 1}, and none exists.`,
+  },
+  {
+    q: `Is ${upper(word)} a good word to practise on?`,
+    a: `${upper(word)} is a ${diff.toLowerCase()} ladder. ${diff === 'Easy' ? 'It is a quick warm-up — useful for learning the shape of the words that sit next to the target.' : diff === 'Medium' ? 'It usually needs one non-obvious turn, which is what makes it a good daily-style practice.' : 'It takes several counter-intuitive moves, so it is a genuinely hard practice word.'}`,
+  },
+];
+const jsonLd = [
+  breadcrumbLd([
+    { name: 'Home', path: '/' },
+    { name: 'Word index', path: '/from/' },
+    { name: `${upper(word)} to POOP`, path: `/from/${word}/` },
+  ]),
+  faqLd(faqs),
+];
+---
+<Base title={title} description={description} path={`/from/${word}/`} jsonLd={jsonLd}>
+  <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Word index', path: '/from/' }, { name: `${upper(word)} → POOP` }]} />
+
+  <h1>{upper(word)} to POOP in {sol.distance} steps</h1>
+  <p class="lede">
+    {upper(word)} is a {diff === 'Easy' ? 'short' : diff === 'Medium' ? 'medium-length' : 'long'} ladder:
+    exactly {sol.distance} one-letter moves from POOP, with
+    {sol.pathCount === 1 ? 'a single optimal solution' : `${sol.pathCount} equally short solutions`}.
+    Everything below is computed from the verified ladder graph, so the step count is the real minimum.
+  </p>
+
+  <section class="card answer-card">
+    <div class="answer-meta">
+      <span class="pill strong">{steps(sol.distance)}</span>
+      <span class={`pill diff ${diff}`}>{diff}</span>
+      <span class="pill">{sol.pathCount} shortest path{sol.pathCount === 1 ? '' : 's'}</span>
+    </div>
+    <LadderPath path={sol.best} linked={true} />
+  </section>
+
+  <h2>Step by step: why each move is the fastest</h2>
+  <p>
+    At every rung the rule is the same — change one letter to another real word, and only step onto a word
+    that is one notch closer to POOP. The table below shows, for each rung of the shortest ladder, which
+    moves actually shorten the distance and which legal-looking moves quietly cost you a step.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Step</th><th>From</th><th>Moves that shorten the ladder</th><th>Moves that don't</th></tr>
+    </thead>
+    <tbody>
+      {stepList.map((s, i) => (
+        <tr>
+          <td>{i + 1}</td>
+          <td class="mono">{upper(s.from)}</td>
+          <td>
+            {s.options.map((o, j) => (
+              <>
+                {j > 0 && ', '}
+                <strong class="mono">{upper(o.word)}</strong>
+                <span class="muted"> ({o.distance} left)</span>
+              </>
+            ))}
+          </td>
+          <td>
+            {s.nonProgress.length === 0
+              ? <span class="muted">—</span>
+              : s.nonProgress.map((o, j) => (
+                  <>
+                    {j > 0 && ', '}
+                    <span class="mono">{upper(o.word)}</span>
+                    <span class="muted"> ({o.distance} left)</span>
+                  </>
+                ))}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  <p class="muted">
+    A move is only part of an optimal ladder if it reduces the remaining distance by exactly one. Words in
+    the last column are still legal moves — they just leave you the same distance away or further, so they
+    add a step without bringing POOP any closer.
+  </p>
+
+  {sol.pathCount > 1 && (
+    <>
+      <h2>Every shortest ladder from {upper(word)}</h2>
+      <table>
+        <thead><tr><th>#</th><th>Ladder</th></tr></thead>
+        <tbody>
+          {sol.paths.map((p, i) => (
+            <tr><td>{i + 1}</td><td class="mono">{p.map(upper).join(' → ')}</td></tr>
+          ))}
+        </tbody>
+      </table>
+    </>
+  )}
+
+  <h2>How to read this ladder</h2>
+  <p>
+    The first move is the decision that matters. From {upper(word)} the optimal opening changes position
+    {changedPos + 1}, turning “{word[changedPos].toUpperCase()}” into “{firstTo[changedPos].toUpperCase()}”
+    and giving {upper(firstTo)}. Players who stall on this puzzle almost always change a different letter
+    first — often the one that “looks” wrong — and end up on a word that is just as far from POOP as
+    {upper(word)} was. After that first move the ladder is {sol.distance - 1} steps long, and the same
+    rule applies at every rung: look for the neighbour that is one step closer.
+  </p>
+  <p>
+    Distance is what makes this mechanical rather than guesswork. Every four-letter word in this graph has a
+    fixed distance to POOP, and swapping one letter changes that distance by at most one. So there are only
+    three kinds of move at any rung: one that shortens (distance − 1), one that keeps you level (distance),
+    and one that sets you back (distance + 1). An optimal ladder is simply a chain of “shortening” moves,
+    which is why {upper(word)} has exactly {sol.distance} of them and {sol.pathCount === 1 ? 'only one arrangement' : `${sol.pathCount} valid arrangements`}.
+  </p>
+
+  <section class="card">
+    <h2 style="margin-top:0">Words one letter from {upper(word)}</h2>
+    {near.length ? (
+      <>
+        <p style="margin:0 0 12px">These are the legal neighbours of {upper(word)} — each differs by a single letter:</p>
+        <ul class="linklist">
+          {near.map((n) => (
+            <li><a href={link(`/from/${n}/`)}>{upper(n)} ({solveWord(n, 1).distance} steps)</a></li>
+          ))}
+        </ul>
+      </>
+    ) : (
+      <p style="margin:0">No comparable words listed.</p>
+    )}
+  </section>
+
+  {peers.length > 0 && (
+    <section class="card">
+      <h2 style="margin-top:0">Other {sol.distance}-step words</h2>
+      <p style="margin:0 0 12px">Same difficulty band as {upper(word)} — try one of these next:</p>
+      <ul class="linklist">
+        {peers.map((p) => (
+          <li><a href={link(`/from/${p}/`)}>{upper(p)}</a></li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <FaqList items={faqs} />
+
+  <section class="card">
+    <h2 style="margin-top:0">Keep going</h2>
+    <ul class="linklist">
+      <li><a href={link('/solver/')}>Solve any word</a></li>
+      <li><a href={link('/answer-today/')}>Today's answer</a></li>
+      <li><a href={link('/hints/')}>Today's hints</a></li>
+      <li><a href={link('/unlimited/')}>Unlimited practice</a></li>
+      <li><a href={link('/how-to-play/')}>How to play</a></li>
+    </ul>
+  </section>
+</Base>

@@ -1,0 +1,17 @@
+{
+  "root": "poop",
+  "one_step_neighbors": [
+    "boop",
+    "coop",
+    "goop",
+    "hoop",
+    "loop",
+    "plop",
+    "pomp",
+    "poof",
+    "pool",
+    "poor",
+    "prop"
+  ],
+  "count": 11
+}
