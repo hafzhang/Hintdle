@@ -15,8 +15,9 @@ hintdle 每日同步（每天北京时间 16:10 = 08:00 UTC 换题后 10 分钟�
 退出码: 0 = 站点构建成功（校验可能已降级）；1 = 构建失败。
 
 用法:
-  python daily_sync.py               # 每日正常运行（联网校验 + 构建）
+  python daily_sync.py               # 本地每日运行（联网校验 + 构建到 dist/）
   python daily_sync.py --skip-fetch  # 跳过联网校验，只重新构建站点
+  python daily_sync.py --check-only  # 只校验并写入当日存档，不构建（供 CI 用，构建交给 Vercel）
 """
 from __future__ import annotations
 
@@ -120,6 +121,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--skip-fetch", action="store_true",
                     help="跳过 bundle 校验，只重新构建站点")
+    ap.add_argument("--check-only", action="store_true",
+                    help="只校验并写入当日存档，不构建站点（供 CI 调用）")
     args = ap.parse_args()
 
     refreshed = False
@@ -145,6 +148,10 @@ def main() -> int:
     if refreshed:
         if run([sys.executable, str(FETCH_TODAY), "--offline"]) != 0:
             log("[warn] today's archive was not written (see alerts.log)")
+
+    if args.check_only:
+        log("check-only: data synced, build delegated to Vercel")
+        return 0
 
     if build_site() != 0:
         alert("astro build failed")

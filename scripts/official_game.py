@@ -25,7 +25,8 @@ from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-ROOT = Path(r"d:\wangzhan\hintdle")
+# 由脚本位置推导仓库根目录：本地 Windows 与 CI（Linux）都适用
+ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
 OUT = ROOT / "data" / "processed"
 DAILY = ROOT / "data" / "daily"
