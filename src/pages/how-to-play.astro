@@ -233,7 +233,7 @@ const longest = [...words.values()].sort((a, b) => b.distance - a.distance).slic
   <h2 id="daily-vs-unlimited">Daily puzzle vs unlimited practice</h2>
   <p>
     The daily puzzle gives you one ladder per day{today ? ` (today's is #${today.n}, starting from ${upper(today.word)} and live from ${fmtDate(today.startUtc)})` : ''}, which is great for routine but
-    stingy for practice. <a href={link('/unlimited/')}>Unlimited practice</a> removes the wait: it draws
+    stingy for practice. <a href={link('/unlimited/')}>Poople unlimited</a> removes the wait: it draws
     fresh starting words from the same graph, sorted into the three bands above, so you can drill a dozen
     Medium ladders in a row and feel the pattern set in.
   </p>
@@ -274,10 +274,10 @@ const longest = [...words.values()].sort((a, b) => b.distance - a.distance).slic
   <section class="card">
     <h2 style="margin-top:0">Start playing</h2>
     <ul class="linklist">
-      <li><a href={link('/answer-today/')}>Today's answer</a></li>
-      <li><a href={link('/hints/')}>Today's hints</a></li>
+      <li><a href={link('/answer-today/')}>Poople answer today</a></li>
+      <li><a href={link('/hints/')}>Poople hints</a></li>
       <li><a href={link('/solver/')}>Solver</a></li>
-      <li><a href={link('/unlimited/')}>Unlimited practice</a></li>
+      <li><a href={link('/unlimited/')}>Poople unlimited</a></li>
       <li><a href={link('/from/')}>Word index</a></li>
       <li><a href={link('/archive/')}>Answer archive</a></li>
     </ul>

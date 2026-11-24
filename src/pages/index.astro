@@ -13,7 +13,7 @@ const today = todayPuzzle();
 const seq = getSequence();
 const yesterday = today ? seq[today.n - 1] ?? null : null;
 
-const title = 'Poople Answer Today, Hints & Solver | Hintdle';
+const title = 'Poople Hints & Word Ladder Solver | Hintdle';
 const description = today
   ? `Today's four-letter word ladder starts at ${upper(today.word)} and needs ${today.distance} steps to reach POOP. Get the full answer, four levels of spoiler-free hints and a free shortest-path solver.`
   : 'Daily answers, four levels of spoiler-free hints and a free shortest-path solver for the four-letter word ladder game.';
@@ -21,7 +21,7 @@ const description = today
 const faqs = [
   {
     q: 'What is Poople, and is this the Poople game?',
-    a: `Poople is the name of the daily four-letter word ladder: you start on the word of the day, change one letter at a time, and finish on POOP. Hintdle is not that game and has no connection to its makers — it is an independent reference site covering the same puzzle, which is why today's Poople answer, four levels of Poople hints and a Poople solver for any word are all here. If you searched for the Poople answer today, this page is the shortcut.`,
+    a: `Poople is the name of the daily four-letter word ladder: you start on the word of the day, change one letter at a time, and finish on POOP. Hintdle is not that game and has no connection to its makers — it is an independent reference site covering the same puzzle, which is why four levels of Poople hints and a Poople solver for any word both live here, alongside a dedicated page for the day's own answer.`,
   },
   {
     q: 'What is the daily word ladder?',
@@ -53,7 +53,7 @@ const jsonLd = [
 ];
 ---
 <Base title={title} description={description} path="/" jsonLd={jsonLd}>
-  <h1>Poople answer today, hints and a word ladder solver</h1>
+  <h1>Poople hints and a word ladder solver</h1>
   <p class="lede">
     One screen for everything you need: today's answer, four levels of spoiler-free hints, and a solver
     that finds the shortest path from any four-letter word to POOP. No account, no upload, no waiting.
