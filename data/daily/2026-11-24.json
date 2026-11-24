@@ -1,0 +1,163 @@
+{
+  "puzzle_number": 467,
+  "start_word": "vine",
+  "target": "poop",
+  "date_utc": "2026-11-24",
+  "active_from_utc": "2026-11-24T08:00:00+00:00",
+  "active_until_utc": "2026-11-25T08:00:00+00:00",
+  "generated_at": "2026-11-24T08:11:21+00:00",
+  "distance": 6,
+  "shortest_path_count": 15,
+  "hints": {
+    "1_steps": "The shortest ladder takes 6 step(s).",
+    "2_position": "Your first move changes letter #1 (V).",
+    "3_letter_change": "Position 1: V -> L.",
+    "4_first_word": "The first word is LINE (VINE -> LINE)."
+  },
+  "revealed_path": [
+    "vine",
+    "line",
+    "lime",
+    "limp",
+    "pimp",
+    "pomp",
+    "poop"
+  ],
+  "all_shortest_paths": [
+    [
+      "vine",
+      "pine",
+      "pike",
+      "poke",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "pine",
+      "pipe",
+      "pope",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "pine",
+      "pile",
+      "pole",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "vine",
+      "pine",
+      "pile",
+      "pole",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "pine",
+      "pile",
+      "pill",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "vine",
+      "line",
+      "lime",
+      "limp",
+      "pimp",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "pile",
+      "pole",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "pile",
+      "pole",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "pile",
+      "pill",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "vole",
+      "pole",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "vole",
+      "pole",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "tine",
+      "time",
+      "tome",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "tine",
+      "tone",
+      "tome",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "dine",
+      "done",
+      "dome",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "dine",
+      "dime",
+      "dome",
+      "pome",
+      "pomp",
+      "poop"
+    ]
+  ]
+}
