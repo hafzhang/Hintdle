@@ -2,10 +2,8 @@ name: daily rebuild
 
 on:
   schedule:
-    # 08:10 UTC = 北京时间 16:10，官方换题（08:00 UTC）后留 10 分钟余量。
-    # 注意 GitHub 的 cron 只会晚不会早，这里刻意不用 08:00 整点：
-    # 站点按构建时刻算题号，卡在整点那一毫秒有可能仍算作前一天。
-    - cron: '10 8 * * *'
+    # 临时测试：每 5 分钟触发一次，确认 scheduled 机制正常
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 # 需要写权限才能把刷新后的数据 push 回仓库
