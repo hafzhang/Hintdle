@@ -9,8 +9,8 @@ import { breadcrumbLd, webApplicationLd, faqLd } from '../lib/seo';
 const { words } = getGraph();
 const wordCount = words.size;
 
-const title = 'Poople Solver — Shortest Word Ladder Path to POOP';
-const description = `Type any four-letter word and get its shortest ladder to POOP instantly. All ${wordCount.toLocaleString('en-US')} playable words, computed in your browser — nothing is uploaded, no account needed.`;
+const title = 'Poople Solver — Shortest Word Ladder to POOP';
+const description = `The Poople solver returns the shortest path from any four-letter word to POOP: the full ladder, how many routes share that length, and every alternative. All ${wordCount.toLocaleString('en-US')} playable words, computed in your browser — nothing is uploaded, no account needed.`;
 
 const faqs = [
   {
@@ -24,6 +24,10 @@ const faqs = [
   {
     q: 'Is my input sent to a server?',
     a: 'No. The dictionary is a static file downloaded once, and the lookup happens entirely in your browser. Hintdle has no backend and no accounts, so there is nothing to log or store.',
+  },
+  {
+    q: 'Is this the same as Poople unlimited?',
+    a: `Effectively yes. Poople unlimited drops the one-puzzle-a-day limit and lets you play any starting word as many times as you want; the solver gives you the shortest path to POOP for any of the ${wordCount.toLocaleString('en-US')} playable words, so every lookup is a round of unlimited practice.`,
   },
   {
     q: 'Can I use it for a word I am stuck on right now?',
@@ -41,9 +45,9 @@ const jsonLd = [
 
   <h1>Poople solver: shortest path to POOP from any four-letter word</h1>
   <p class="lede">
-    Enter any four-letter word. The solver returns the shortest ladder to POOP, how many equally short
-    ladders exist, and every extra route it can find. Runs entirely in your browser against a
-    pre-computed table of {wordCount.toLocaleString('en-US')} words.
+    Enter any four-letter word and the Poople solver returns the shortest path to POOP: the exact sequence
+    of words, how many other ladders are just as short, and every extra route it can find. It runs
+    entirely in your browser against a pre-computed table of {wordCount.toLocaleString('en-US')} words.
   </p>
 
   <section class="card">
@@ -91,6 +95,20 @@ const jsonLd = [
     actually spell out. Difficulty labels are attached to every result too: 1–3 steps is
     Easy, 4–5 is Medium, and 6 or more is Hard, matching the way the daily puzzle labels its own
     difficulty.
+  </p>
+
+  <h2>Poople unlimited — practice with any word, as often as you like</h2>
+  <p>
+    Poople unlimited is the same ladder with the daily limit removed: instead of waiting for one starting
+    word a day, you pick any of the {wordCount.toLocaleString('en-US')} playable words and play it straight
+    away. That is exactly what this solver does — every lookup is one round of unlimited practice. Type a
+    word, read how many steps it needs, then try to walk the ladder yourself before you reveal it.
+  </p>
+  <p>
+    Would rather have the word chosen for you? The <a href={link('/unlimited/')}>unlimited practice page</a>
+    draws a random starting word and shows the same shortest-path result, so you can keep going without
+    deciding anything. Practising this way teaches the shape of the graph faster than replaying the daily
+    puzzle once, because you meet words from every distance band, not just today's.
   </p>
 
   <FaqList items={faqs} />

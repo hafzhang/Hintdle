@@ -21,8 +21,8 @@ const sol = solveWord(puzzle.word, 8);
 const firstTo = sol.best[1];
 const changedPos = [...puzzle.word].findIndex((c, i) => c !== firstTo[i]);
 
-const title = `Puzzle #${puzzle.n} — ${upper(puzzle.word)} to POOP in ${puzzle.distance} Steps`;
-const description = `Archive entry for puzzle #${puzzle.n}, live ${isoDate(puzzle.startUtc)}: starting word ${upper(puzzle.word)}, ${puzzle.distance} steps to POOP (${difficultyOf(puzzle.distance)}). Full ladder and equal-length alternatives.`;
+const title = `Poople Answer #${puzzle.n} — ${upper(puzzle.word)} to POOP in ${puzzle.distance} Steps`;
+const description = `The Poople answer for ${isoDate(puzzle.startUtc)}: puzzle #${puzzle.n} started on ${upper(puzzle.word)} and takes ${puzzle.distance} steps to POOP (${difficultyOf(puzzle.distance)}). Full ladder and every equal-length alternative.`;
 
 const faqs = [
   {

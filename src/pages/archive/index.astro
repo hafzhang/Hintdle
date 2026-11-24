@@ -13,13 +13,17 @@ const oldest = released.slice(0, PER_PAGE);
 const totalPages = Math.max(1, Math.ceil(released.length / PER_PAGE));
 const current = 1;
 
-const title = 'Word Ladder Answer Archive — Every Daily Puzzle';
-const description = `Browse every daily word ladder that has been published: ${released.length.toLocaleString('en-US')} puzzles so far, each with its starting word, step count and full ladder. Oldest first, starting from puzzle #1.`;
+const title = 'Poople Archive — Every Past Answer, Yesterday & Previous';
+const description = `Every Poople answer in one place, yesterday's included: ${released.length.toLocaleString('en-US')} past puzzles, each with its starting word, step count and full ladder. Oldest first, starting from #1.`;
 
 const faqs = [
   {
     q: 'How far back does the archive go?',
     a: `Back to the very first puzzle. There are ${released.length.toLocaleString('en-US')} entries so far, and each one keeps its original starting word and step count — archived puzzles are never rewritten.`,
+  },
+  {
+    q: 'Where is yesterday’s answer, or the previous puzzle?',
+    a: 'The archive runs in order, so the previous puzzle is simply the second-newest entry and yesterday’s is the one before today’s. Both also have their own pages — yesterday’s answer and today’s answer — if you would rather not scroll through the table.',
   },
   {
     q: 'Can I replay an old puzzle?',
@@ -38,11 +42,17 @@ const jsonLd = [
 <Base title={title} description={description} path="/archive/" jsonLd={jsonLd}>
   <Breadcrumbs items={[{ name: 'Home', path: '/' }, { name: 'Archive' }]} />
 
-  <h1>Word ladder answer archive</h1>
+  <h1>Poople archive: yesterday, the previous puzzle and every past answer</h1>
   <p class="lede">
     Every daily puzzle ever published in date order, starting from the first one (#1). {released.length.toLocaleString('en-US')} entries —
     each with its starting word, shortest step count and full ladder. Pages of {PER_PAGE}.
   </p>
+
+  <div class="note">
+    Looking for a recent answer? <a href={link('/yesterday/')}>Yesterday’s puzzle</a> covers the one before
+    today’s, and <a href={link('/answer-today/')}>today’s answer</a> covers the current one. Everything
+    older is in the table below, oldest first.
+  </div>
 
   <section class="card">
     <table>
@@ -83,11 +93,11 @@ const jsonLd = [
     link you save today still points at the same answer a year from now.
   </p>
   <p>
-    Puzzle numbers are a simple counter — the first puzzle is #0 and each new one adds one — while the
-    "live from" date is the UTC moment the puzzle became playable. Because the switch happens at a fixed
-    time, the same calendar day can be shared by two puzzles depending on your time zone; the archive
-    therefore keys everything on the puzzle number and lists the exact UTC window, which removes the
-    ambiguity.
+    Puzzle numbers are a simple counter; here the archive begins at #1, the first puzzle that was live for
+    a full day. The "live from" date is the UTC moment the puzzle became playable. Because the switch
+    happens at a fixed time, the same calendar day can be shared by two puzzles depending on your time
+    zone; the archive therefore keys everything on the puzzle number and lists the exact UTC window, which
+    removes the ambiguity.
   </p>
 
   <FaqList items={faqs} />
