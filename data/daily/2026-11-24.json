@@ -5,7 +5,7 @@
   "date_utc": "2026-11-24",
   "active_from_utc": "2026-11-24T08:00:00+00:00",
   "active_until_utc": "2026-11-25T08:00:00+00:00",
-  "generated_at": "2026-11-24T13:00:31+00:00",
+  "generated_at": "2026-11-24T22:58:44+00:00",
   "distance": 6,
   "shortest_path_count": 15,
   "hints": {
@@ -26,60 +26,6 @@
   "all_shortest_paths": [
     [
       "vine",
-      "line",
-      "lime",
-      "limp",
-      "pimp",
-      "pomp",
-      "poop"
-    ],
-    [
-      "vine",
-      "dine",
-      "dime",
-      "dome",
-      "pome",
-      "pomp",
-      "poop"
-    ],
-    [
-      "vine",
-      "dine",
-      "done",
-      "dome",
-      "pome",
-      "pomp",
-      "poop"
-    ],
-    [
-      "vine",
-      "pine",
-      "pile",
-      "pole",
-      "pome",
-      "pomp",
-      "poop"
-    ],
-    [
-      "vine",
-      "pine",
-      "pile",
-      "pole",
-      "poll",
-      "pool",
-      "poop"
-    ],
-    [
-      "vine",
-      "pine",
-      "pile",
-      "pill",
-      "poll",
-      "pool",
-      "poop"
-    ],
-    [
-      "vine",
       "pine",
       "pike",
       "poke",
@@ -98,9 +44,99 @@
     ],
     [
       "vine",
-      "tine",
-      "time",
-      "tome",
+      "pine",
+      "pile",
+      "pill",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "vine",
+      "pine",
+      "pile",
+      "pole",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "vine",
+      "pine",
+      "pile",
+      "pole",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "line",
+      "lime",
+      "limp",
+      "pimp",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "dine",
+      "done",
+      "dome",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "dine",
+      "dime",
+      "dome",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "vole",
+      "pole",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "vole",
+      "pole",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "pile",
+      "pill",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "pile",
+      "pole",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "pile",
+      "pole",
       "pome",
       "pomp",
       "poop"
@@ -116,47 +152,11 @@
     ],
     [
       "vine",
-      "vile",
-      "vole",
-      "pole",
+      "tine",
+      "time",
+      "tome",
       "pome",
       "pomp",
-      "poop"
-    ],
-    [
-      "vine",
-      "vile",
-      "vole",
-      "pole",
-      "poll",
-      "pool",
-      "poop"
-    ],
-    [
-      "vine",
-      "vile",
-      "pile",
-      "pole",
-      "pome",
-      "pomp",
-      "poop"
-    ],
-    [
-      "vine",
-      "vile",
-      "pile",
-      "pole",
-      "poll",
-      "pool",
-      "poop"
-    ],
-    [
-      "vine",
-      "vile",
-      "pile",
-      "pill",
-      "poll",
-      "pool",
       "poop"
     ]
   ]
