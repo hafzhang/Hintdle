@@ -5,7 +5,7 @@
   "date_utc": "2026-11-25",
   "active_from_utc": "2026-11-25T08:00:00+00:00",
   "active_until_utc": "2026-11-26T08:00:00+00:00",
-  "generated_at": "2026-11-25T10:08:28+00:00",
+  "generated_at": "2026-11-25T18:38:11+00:00",
   "distance": 5,
   "shortest_path_count": 4,
   "hints": {
@@ -34,14 +34,6 @@
     [
       "hula",
       "pula",
-      "pull",
-      "poll",
-      "pool",
-      "poop"
-    ],
-    [
-      "hula",
-      "pula",
       "pulp",
       "pump",
       "pomp",
@@ -53,6 +45,14 @@
       "puma",
       "pump",
       "pomp",
+      "poop"
+    ],
+    [
+      "hula",
+      "pula",
+      "pull",
+      "poll",
+      "pool",
       "poop"
     ]
   ]
