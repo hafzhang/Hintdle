@@ -1,0 +1,59 @@
+{
+  "puzzle_number": 468,
+  "start_word": "hula",
+  "target": "poop",
+  "date_utc": "2026-11-25",
+  "active_from_utc": "2026-11-25T08:00:00+00:00",
+  "active_until_utc": "2026-11-26T08:00:00+00:00",
+  "generated_at": "2026-11-25T10:07:34+00:00",
+  "distance": 5,
+  "shortest_path_count": 4,
+  "hints": {
+    "1_steps": "The shortest ladder takes 5 step(s).",
+    "2_position": "Your first move changes letter #1 (H).",
+    "3_letter_change": "Position 1: H -> P.",
+    "4_first_word": "The first word is PULA (HULA -> PULA)."
+  },
+  "revealed_path": [
+    "hula",
+    "pula",
+    "pulp",
+    "pump",
+    "pomp",
+    "poop"
+  ],
+  "all_shortest_paths": [
+    [
+      "hula",
+      "pula",
+      "pull",
+      "poll",
+      "pool",
+      "poop"
+    ],
+    [
+      "hula",
+      "pula",
+      "puma",
+      "pump",
+      "pomp",
+      "poop"
+    ],
+    [
+      "hula",
+      "pula",
+      "pulp",
+      "pump",
+      "pomp",
+      "poop"
+    ],
+    [
+      "hula",
+      "hull",
+      "pull",
+      "poll",
+      "pool",
+      "poop"
+    ]
+  ]
+}
