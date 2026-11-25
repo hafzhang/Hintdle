@@ -5,7 +5,7 @@
   "date_utc": "2026-11-24",
   "active_from_utc": "2026-11-24T08:00:00+00:00",
   "active_until_utc": "2026-11-25T08:00:00+00:00",
-  "generated_at": "2026-11-24T22:58:44+00:00",
+  "generated_at": "2026-11-25T04:55:44+00:00",
   "distance": 6,
   "shortest_path_count": 15,
   "hints": {
@@ -56,8 +56,8 @@
       "pine",
       "pile",
       "pole",
-      "poll",
-      "pool",
+      "pome",
+      "pomp",
       "poop"
     ],
     [
@@ -65,17 +65,8 @@
       "pine",
       "pile",
       "pole",
-      "pome",
-      "pomp",
-      "poop"
-    ],
-    [
-      "vine",
-      "line",
-      "lime",
-      "limp",
-      "pimp",
-      "pomp",
+      "poll",
+      "pool",
       "poop"
     ],
     [
@@ -98,11 +89,29 @@
     ],
     [
       "vine",
-      "vile",
-      "vole",
-      "pole",
-      "poll",
-      "pool",
+      "tine",
+      "tone",
+      "tome",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "tine",
+      "time",
+      "tome",
+      "pome",
+      "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "line",
+      "lime",
+      "limp",
+      "pimp",
+      "pomp",
       "poop"
     ],
     [
@@ -112,6 +121,15 @@
       "pole",
       "pome",
       "pomp",
+      "poop"
+    ],
+    [
+      "vine",
+      "vile",
+      "vole",
+      "pole",
+      "poll",
+      "pool",
       "poop"
     ],
     [
@@ -128,8 +146,8 @@
       "vile",
       "pile",
       "pole",
-      "poll",
-      "pool",
+      "pome",
+      "pomp",
       "poop"
     ],
     [
@@ -137,26 +155,8 @@
       "vile",
       "pile",
       "pole",
-      "pome",
-      "pomp",
-      "poop"
-    ],
-    [
-      "vine",
-      "tine",
-      "tone",
-      "tome",
-      "pome",
-      "pomp",
-      "poop"
-    ],
-    [
-      "vine",
-      "tine",
-      "time",
-      "tome",
-      "pome",
-      "pomp",
+      "poll",
+      "pool",
       "poop"
     ]
   ]
