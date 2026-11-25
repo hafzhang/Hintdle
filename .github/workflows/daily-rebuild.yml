@@ -2,9 +2,11 @@ name: daily rebuild
 
 on:
   schedule:
-    # 临时测试：每 5 分钟触发一次，确认 scheduled 机制正常
-    - cron: '*/5 * * * *'
-  workflow_dispatch:
+    # 冗余保险：GitHub 若投递则多跑一次，不投递也不影响
+    - cron: '10 8 * * *'
+  # Vercel Cron 每日 08:10 UTC 通过 API 唤醒（主触发链路）
+  repository_dispatch:
+    types: [daily-sync]
 
 # 需要写权限才能把刷新后的数据 push 回仓库
 permissions:
