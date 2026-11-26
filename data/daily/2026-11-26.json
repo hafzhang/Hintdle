@@ -1,0 +1,37 @@
+{
+  "puzzle_number": 469,
+  "start_word": "whey",
+  "target": "poop",
+  "date_utc": "2026-11-26",
+  "active_from_utc": "2026-11-26T08:00:00+00:00",
+  "active_until_utc": "2026-11-27T08:00:00+00:00",
+  "generated_at": "2026-11-26T08:05:22+00:00",
+  "distance": 6,
+  "shortest_path_count": 1,
+  "hints": {
+    "1_steps": "The shortest ladder takes 6 step(s).",
+    "2_position": "Your first move changes letter #4 (Y).",
+    "3_letter_change": "Position 4: Y -> W.",
+    "4_first_word": "The first word is WHEW (WHEY -> WHEW)."
+  },
+  "revealed_path": [
+    "whey",
+    "whew",
+    "chew",
+    "chow",
+    "chop",
+    "coop",
+    "poop"
+  ],
+  "all_shortest_paths": [
+    [
+      "whey",
+      "whew",
+      "chew",
+      "chow",
+      "chop",
+      "coop",
+      "poop"
+    ]
+  ]
+}
