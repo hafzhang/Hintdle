@@ -30,6 +30,7 @@ jobs:
       # 提交不只是留痕：仓库连续 60 天无活动会被 GitHub 静默停用定时任务，
       # 而本仓库的数据平时几乎不变，正是最容易撞上这条规则的情况。
       - name: commit the refreshed data
+        id: commit
         run: |
           if [ -n "$(git status --porcelain -- data/processed data/daily)" ]; then
             git config user.name "hintdle-bot"
@@ -37,12 +38,15 @@ jobs:
             git add data/processed data/daily
             git commit -m "data: daily sync $(date -u +%F)"
             git push
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
           else
             echo "no data change"
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # 无条件调用，不依赖「push 会不会触发 Vercel」这个假设。
-      # 站点每天必须重建一次，否则 /、/answer-today/、/hints/、/yesterday/
-      # 会一直停在前一天；漏一次部署就是一天错误答案。
+      # push 成功时 Vercel Git Integration 已自动部署，只有没 push 时才用
+      # Deploy Hook 兜底，避免同一 commit 部署两次。站点每天必须重建一次，
+      # 否则 /、/answer-today/、/hints/、/yesterday/ 会停在前一天。
       - name: trigger the Vercel rebuild
+        if: steps.commit.outputs.pushed == 'false'
         run: curl -fsS -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
