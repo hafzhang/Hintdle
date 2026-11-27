@@ -5,7 +5,7 @@
   "date_utc": "2026-11-27",
   "active_from_utc": "2026-11-27T08:00:00+00:00",
   "active_until_utc": "2026-11-28T08:00:00+00:00",
-  "generated_at": "2026-11-27T08:05:22+00:00",
+  "generated_at": "2026-11-27T18:09:48+00:00",
   "distance": 5,
   "shortest_path_count": 3,
   "hints": {
@@ -25,14 +25,6 @@
   "all_shortest_paths": [
     [
       "grid",
-      "grim",
-      "prim",
-      "prom",
-      "prop",
-      "poop"
-    ],
-    [
-      "grid",
       "grip",
       "drip",
       "drop",
@@ -45,6 +37,14 @@
       "goad",
       "good",
       "goop",
+      "poop"
+    ],
+    [
+      "grid",
+      "grim",
+      "prim",
+      "prom",
+      "prop",
       "poop"
     ]
   ]
