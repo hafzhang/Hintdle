@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import LadderPath from '../components/LadderPath.astro';
 import FaqList from '../components/FaqList.astro';
 import { SITE, link, upper } from '../lib/site';
-import { getGraph, getStats, difficultyOf } from '../lib/graph';
+import { getGraph, getStats, difficultyOf, solveWord } from '../lib/graph';
 import { todayPuzzle, getSequence, fmtDate } from '../lib/daily';
 import { breadcrumbLd, webApplicationLd, faqLd } from '../lib/seo';
 
@@ -12,6 +12,8 @@ const stats = getStats();
 const today = todayPuzzle();
 const seq = getSequence();
 const yesterday = today ? seq[today.n - 1] ?? null : null;
+// 首页内联展开用的最短梯子；/answer-today/ 仍承载全部等长替代路径。
+const answerSol = today ? solveWord(today.word, 12) : null;
 
 const title = 'Poople Hints & Word Ladder Solver | Hintdle';
 const description = today
@@ -69,11 +71,19 @@ const jsonLd = [
         <span class="pill">Live {fmtDate(today.startUtc)} 08:00 UTC</span>
       </div>
       <LadderPath path={[today.word, ...Array(Math.max(0, today.distance - 1)).fill('????'), 'poop']} />
-      <p class="muted" style="margin:0 0 14px">
-        The hidden rungs are revealed on the answer page. Prefer to work it out yourself? Start with the hints.
-      </p>
+      {answerSol && answerSol.best.length > 1 && (
+        <details class="hint" style="margin:0 0 16px">
+          <summary>Reveal today's answer</summary>
+          <div class="hint-body">
+            <LadderPath path={answerSol.best} />
+            <p class="muted" style="margin:10px 0 0">
+              The shortest ladder, {today.distance} steps — spoiler-free by default, one tap when you want it.
+            </p>
+          </div>
+        </details>
+      )}
       <p style="margin:0">
-        <a href={link('/answer-today/')}>See today's full answer</a> ·
+        <a href={link('/answer-today/')}>All alternative paths</a> ·
         <a href={link('/hints/')}>Get hints one at a time</a> ·
         <a href={link('/solver/')}>Solve any word</a>
       </p>
