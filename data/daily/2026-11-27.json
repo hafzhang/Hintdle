@@ -1,0 +1,51 @@
+{
+  "puzzle_number": 470,
+  "start_word": "grid",
+  "target": "poop",
+  "date_utc": "2026-11-27",
+  "active_from_utc": "2026-11-27T08:00:00+00:00",
+  "active_until_utc": "2026-11-28T08:00:00+00:00",
+  "generated_at": "2026-11-27T08:05:22+00:00",
+  "distance": 5,
+  "shortest_path_count": 3,
+  "hints": {
+    "1_steps": "The shortest ladder takes 5 step(s).",
+    "2_position": "Your first move changes letter #3 (I).",
+    "3_letter_change": "Position 3: I -> A.",
+    "4_first_word": "The first word is GRAD (GRID -> GRAD)."
+  },
+  "revealed_path": [
+    "grid",
+    "grad",
+    "goad",
+    "good",
+    "goop",
+    "poop"
+  ],
+  "all_shortest_paths": [
+    [
+      "grid",
+      "grim",
+      "prim",
+      "prom",
+      "prop",
+      "poop"
+    ],
+    [
+      "grid",
+      "grip",
+      "drip",
+      "drop",
+      "prop",
+      "poop"
+    ],
+    [
+      "grid",
+      "grad",
+      "goad",
+      "good",
+      "goop",
+      "poop"
+    ]
+  ]
+}
