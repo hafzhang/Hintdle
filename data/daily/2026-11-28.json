@@ -1,0 +1,39 @@
+{
+  "puzzle_number": 471,
+  "start_word": "trek",
+  "target": "poop",
+  "date_utc": "2026-11-28",
+  "active_from_utc": "2026-11-28T08:00:00+00:00",
+  "active_until_utc": "2026-11-29T08:00:00+00:00",
+  "generated_at": "2026-11-28T08:05:24+00:00",
+  "distance": 7,
+  "shortest_path_count": 1,
+  "hints": {
+    "1_steps": "The shortest ladder takes 7 step(s).",
+    "2_position": "Your first move changes letter #4 (K).",
+    "3_letter_change": "Position 4: K -> E.",
+    "4_first_word": "The first word is TREE (TREK -> TREE)."
+  },
+  "revealed_path": [
+    "trek",
+    "tree",
+    "free",
+    "flee",
+    "floe",
+    "flop",
+    "plop",
+    "poop"
+  ],
+  "all_shortest_paths": [
+    [
+      "trek",
+      "tree",
+      "free",
+      "flee",
+      "floe",
+      "flop",
+      "plop",
+      "poop"
+    ]
+  ]
+}
